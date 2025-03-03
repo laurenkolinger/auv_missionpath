@@ -10,7 +10,7 @@ const MISSION_CONFIG = {
   // The CSV file containing actual mission path data
   // Required columns: timestamp_ros, latitude, longitude, depth
   // Optional columns: roll, pitch, yaw, errorState, distance_to_ocean_floor
-  csvPath: "/data/mission1_travel_path_runway.csv",
+  csvPath: "/data/mission_travel_path_runway.csv",
 };
 
 function App() {
