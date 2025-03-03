@@ -72,22 +72,22 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const formatTimeOnly = (timestamp) => {
     if (!timestamp || timestamp.length < 14) return "00:00:00";
     try {
-      // Extract UTC components
-      const hour = parseInt(timestamp.substring(8, 10));
-      const minute = parseInt(timestamp.substring(10, 12));
-      const second = parseInt(timestamp.substring(12, 14));
+      // Parse the timestamp (YYYYMMDDHHMMSS.xxx format)
+      const year = timestamp.substring(0, 4);
+      const month = timestamp.substring(4, 6);
+      const day = timestamp.substring(6, 8);
+      const hour = timestamp.substring(8, 10);
+      const minute = timestamp.substring(10, 12);
+      const second = timestamp.substring(12, 14);
+
+      // Create a UTC date
+      const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
       
-      // Validate components
-      if (isNaN(hour) || isNaN(minute) || isNaN(second)) return "00:00:00";
-      if (hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59) return "00:00:00";
+      // Subtract 4 hours for AST
+      date.setUTCHours(date.getUTCHours() - 4);
       
-      // Convert to AST (UTC-4)
-      let astHour = hour - 4;
-      if (astHour < 0) astHour += 24;
-      
-      // Format with leading zeros
-      const formatNumber = (n) => n.toString().padStart(2, '0');
-      return `${formatNumber(astHour)}:${formatNumber(minute)}:${formatNumber(second)}`;
+      // Format using date-fns
+      return format(date, 'HH:mm:ss');
     } catch (error) {
       console.error('Error formatting time:', error);
       return "00:00:00";
@@ -98,17 +98,22 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const formatDateOnly = (timestamp) => {
     if (!timestamp || timestamp.length < 8) return "1 January 2025";
     try {
-      const year = parseInt(timestamp.substring(0, 4));
-      const month = parseInt(timestamp.substring(4, 6)) - 1;
-      const day = parseInt(timestamp.substring(6, 8));
+      // Parse the timestamp (YYYYMMDDHHMMSS.xxx format)
+      const year = timestamp.substring(0, 4);
+      const month = timestamp.substring(4, 6);
+      const day = timestamp.substring(6, 8);
+      const hour = timestamp.substring(8, 10) || "00";
+      const minute = timestamp.substring(10, 12) || "00";
+      const second = timestamp.substring(12, 14) || "00";
+
+      // Create a UTC date
+      const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
       
-      // Validate components
-      if (isNaN(year) || isNaN(month) || isNaN(day)) return "1 January 2025";
-      if (month < 0 || month > 11 || day < 1 || day > 31) return "1 January 2025";
+      // Subtract 4 hours for AST
+      date.setUTCHours(date.getUTCHours() - 4);
       
-      const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                     'July', 'August', 'September', 'October', 'November', 'December'];
-      return `${parseInt(day)} ${months[month]} ${year}`;
+      // Format using date-fns
+      return format(date, 'd MMMM yyyy');
     } catch (error) {
       console.error('Error formatting date:', error);
       return "1 January 2025";
