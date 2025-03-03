@@ -645,108 +645,28 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
             style={styles.svgContainer}
           >
-            {/* Draw planned path as dotted line */}
+            {/* Base black lines for actual and planned paths */}
+            <path
+              d={actualPoints
+                .map((point, i) => `${i === 0 ? "M" : "L"} ${point.x},${point.y}`)
+                .join(" ")}
+              fill="none"
+              stroke="black"
+              strokeWidth="2"
+              opacity="0.7"
+            />
             <path
               d={plannedPoints
                 .map((point, i) => `${i === 0 ? "M" : "L"} ${point.x},${point.y}`)
                 .join(" ")}
               fill="none"
-              stroke="purple"
+              stroke="black"
               strokeWidth="2"
               strokeDasharray="5,5"
-              strokeOpacity="0.8"
+              opacity="0.7"
             />
 
-            {/* Draw actual path lines with selected visualization */}
-            {actualPoints.map((point, index) => {
-              if (index === 0) return null;
-              const prevPoint = actualPoints[index - 1];
-              const currentData = point.original;
-              const prevData = prevPoint.original;
-
-              let strokeColor = getColorForDepth(point.depth);
-              
-              if (showVelocity) {
-                strokeColor = getColorForVelocity(
-                  currentData.velX,
-                  currentData.velY,
-                  currentData.velZ
-                );
-              } else if (showBattery) {
-                strokeColor = getColorForBattery(currentData.battery_volts);
-              } else if (showDepthMetrics && currentData.acousticAltimeter) {
-                strokeColor = getColorForAltimeter(currentData.acousticAltimeter);
-              } else if (showModes) {
-                strokeColor = modeColors[currentData.navMode] || "#999";
-              }
-
-              return (
-                <line
-                  key={`line-${index}`}
-                  x1={prevPoint.x}
-                  y1={prevPoint.y}
-                  x2={point.x}
-                  y2={point.y}
-                  stroke={strokeColor}
-                  strokeWidth="2"
-                />
-              );
-            })}
-
-            {/* Draw points based on toggle state */}
-            {showDepthPoints && actualPoints.map((point, index) => (
-              <circle
-                key={`depth-point-${index}`}
-                cx={point.x}
-                cy={point.y}
-                r="3"
-                fill={getColorForDepth(point.depth)}
-                stroke={
-                  hoveredPoint === index && hoveredType === "actual"
-                    ? "#000"
-                    : "none"
-                }
-                strokeWidth="1"
-                onMouseEnter={() => {
-                  setHoveredPoint(index);
-                  setHoveredType("actual");
-                }}
-                onMouseLeave={() => {
-                  setHoveredPoint(null);
-                  setHoveredType(null);
-                }}
-              />
-            ))}
-
-            {showVelocityPoints && actualPoints.map((point, index) => (
-              <circle
-                key={`velocity-point-${index}`}
-                cx={point.x}
-                cy={point.y}
-                r="3"
-                fill={getColorForVelocity(
-                  point.original.velX,
-                  point.original.velY,
-                  point.original.velZ
-                )}
-                stroke={
-                  hoveredPoint === index && hoveredType === "velocity"
-                    ? "#000"
-                    : "none"
-                }
-                strokeWidth="1"
-                onMouseEnter={() => {
-                  setHoveredPoint(index);
-                  setHoveredType("velocity");
-                }}
-                onMouseLeave={() => {
-                  setHoveredPoint(null);
-                  setHoveredType(null);
-                }}
-              />
-            ))}
-
-            {/* Draw planned waypoints */}
+            {/* Draw planned waypoint markers */}
             {plannedPoints.map((point, index) => (
               <React.Fragment key={`planned-waypoint-${index}`}>
                 <circle
@@ -783,81 +703,112 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               </React.Fragment>
             ))}
 
-            {/* Show tooltip for hovered planned point */}
-            {hoveredPoint !== null &&
-              hoveredType === "planned" &&
-              plannedPoints[hoveredPoint] && (
-                <g>
-                  <rect
-                    x={plannedPoints[hoveredPoint].x + 10}
-                    y={plannedPoints[hoveredPoint].y - 60}
-                    width="200"
-                    height="55"
-                    fill="rgba(0, 0, 0, 0.8)"
-                    rx="5"
-                  />
-                  <text
-                    x={plannedPoints[hoveredPoint].x + 15}
-                    y={plannedPoints[hoveredPoint].y - 40}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Waypoint: {plannedPoints[hoveredPoint].original.waypoint_number}
-                  </text>
-                  <text
-                    x={plannedPoints[hoveredPoint].x + 15}
-                    y={plannedPoints[hoveredPoint].y - 25}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Position: {plannedPoints[hoveredPoint].original.latitude.toFixed(6)},
-                    {plannedPoints[hoveredPoint].original.longitude.toFixed(6)}
-                  </text>
-                  <text
-                    x={plannedPoints[hoveredPoint].x + 15}
-                    y={plannedPoints[hoveredPoint].y - 10}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Type: {plannedPoints[hoveredPoint].original.additional_data?.transect_type || "N/A"}
-                  </text>
-                </g>
-              )}
-
-            {/* Draw incident markers if enabled */}
-            {showIncidents && incidentMarkers.map((marker, index) => (
-              <g
-                key={`incident-${index}`}
+            {/* Draw data points based on toggle state */}
+            {showDepthPoints && actualPoints.map((point, index) => (
+              <circle
+                key={`depth-point-${index}`}
+                cx={point.x}
+                cy={point.y}
+                r="3"
+                fill={getColorForDepth(point.depth)}
+                stroke={hoveredPoint === index && hoveredType === "depth" ? "#000" : "none"}
+                strokeWidth="1"
                 onMouseEnter={() => {
-                  setHoveredIncident(index);
+                  setHoveredPoint(index);
+                  setHoveredType("depth");
                 }}
                 onMouseLeave={() => {
-                  setHoveredIncident(null);
+                  setHoveredPoint(null);
+                  setHoveredType(null);
                 }}
-              >
-                <circle
-                  cx={marker.x}
-                  cy={marker.y}
-                  r="8"
-                  fill="red"
-                  fillOpacity="0.7"
-                  stroke="white"
-                  strokeWidth="1"
-                />
-                <text
-                  x={marker.x}
-                  y={marker.y + 4}
-                  fontSize="10"
-                  fill="white"
-                  textAnchor="middle"
-                  fontWeight="bold"
-                >
-                  {marker.incident.count > 9 ? "!" : marker.incident.count}
-                </text>
-              </g>
+              />
             ))}
 
-            {/* Draw attitude indicators every 10 points if enabled */}
+            {showVelocityPoints && actualPoints.map((point, index) => (
+              <circle
+                key={`velocity-point-${index}`}
+                cx={point.x}
+                cy={point.y}
+                r="3"
+                fill={getColorForVelocity(
+                  point.original.velX,
+                  point.original.velY,
+                  point.original.velZ
+                )}
+                stroke={hoveredPoint === index && hoveredType === "velocity" ? "#000" : "none"}
+                strokeWidth="1"
+                onMouseEnter={() => {
+                  setHoveredPoint(index);
+                  setHoveredType("velocity");
+                }}
+                onMouseLeave={() => {
+                  setHoveredPoint(null);
+                  setHoveredType(null);
+                }}
+              />
+            ))}
+
+            {showModePoints && actualPoints.map((point, index) => (
+              <circle
+                key={`mode-point-${index}`}
+                cx={point.x}
+                cy={point.y}
+                r="3"
+                fill={modeColors[point.original.navMode] || "#999"}
+                stroke={hoveredPoint === index && hoveredType === "mode" ? "#000" : "none"}
+                strokeWidth="1"
+                onMouseEnter={() => {
+                  setHoveredPoint(index);
+                  setHoveredType("mode");
+                }}
+                onMouseLeave={() => {
+                  setHoveredPoint(null);
+                  setHoveredType(null);
+                }}
+              />
+            ))}
+
+            {showBatteryPoints && actualPoints.map((point, index) => (
+              <circle
+                key={`battery-point-${index}`}
+                cx={point.x}
+                cy={point.y}
+                r="3"
+                fill={getColorForBattery(point.original.battery_volts)}
+                stroke={hoveredPoint === index && hoveredType === "battery" ? "#000" : "none"}
+                strokeWidth="1"
+                onMouseEnter={() => {
+                  setHoveredPoint(index);
+                  setHoveredType("battery");
+                }}
+                onMouseLeave={() => {
+                  setHoveredPoint(null);
+                  setHoveredType(null);
+                }}
+              />
+            ))}
+
+            {showAltimeterPoints && actualPoints.map((point, index) => (
+              <circle
+                key={`altimeter-point-${index}`}
+                cx={point.x}
+                cy={point.y}
+                r="3"
+                fill={getColorForAltimeter(point.original.acousticAltimeter)}
+                stroke={hoveredPoint === index && hoveredType === "altimeter" ? "#000" : "none"}
+                strokeWidth="1"
+                onMouseEnter={() => {
+                  setHoveredPoint(index);
+                  setHoveredType("altimeter");
+                }}
+                onMouseLeave={() => {
+                  setHoveredPoint(null);
+                  setHoveredType(null);
+                }}
+              />
+            ))}
+
+            {/* Draw attitude indicators */}
             {showAttitudeIndicators && actualPoints.map((point, index) => {
               const originalPoint = point.original;
               if (
@@ -896,149 +847,178 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               );
             })}
 
-            {/* Draw found objects markers if enabled */}
-            {showFoundObjects && actualPoints.map((point, index) => {
-              const data = point.original;
-              if (!data.cotsNumFound && !data.cotsNumMaybe) return null;
+            {/* Draw incident markers */}
+            {showIncidents && incidentMarkers.map((marker, index) => (
+              <g
+                key={`incident-${index}`}
+                onMouseEnter={() => {
+                  setHoveredIncident(index);
+                }}
+                onMouseLeave={() => {
+                  setHoveredIncident(null);
+                }}
+              >
+                <circle
+                  cx={marker.x}
+                  cy={marker.y}
+                  r="8"
+                  fill="red"
+                  fillOpacity="0.7"
+                  stroke="white"
+                  strokeWidth="1"
+                />
+                <text
+                  x={marker.x}
+                  y={marker.y + 4}
+                  fontSize="10"
+                  fill="white"
+                  textAnchor="middle"
+                  fontWeight="bold"
+                >
+                  {marker.incident.count > 9 ? "!" : marker.incident.count}
+                </text>
+              </g>
+            ))}
 
-              return (
-                <g key={`found-${index}`}>
-                  {data.cotsNumFound > 0 && (
-                    <circle
-                      cx={point.x}
-                      cy={point.y}
-                      r="6"
-                      fill="#ff4081"
-                      fillOpacity="0.7"
-                      stroke="white"
-                      strokeWidth="1"
-                    />
-                  )}
-                  {data.cotsNumMaybe > 0 && (
-                    <circle
-                      cx={point.x}
-                      cy={point.y}
-                      r="4"
-                      fill="#ff9800"
-                      fillOpacity="0.7"
-                      stroke="white"
-                      strokeWidth="1"
-                    />
-                  )}
-                </g>
-              );
-            })}
-
-            {/* Update tooltip content based on active visualizations */}
-            {hoveredPoint !== null && hoveredType === "actual" && actualPoints[hoveredPoint] && (
+            {/* Restructured tooltip */}
+            {hoveredPoint !== null && actualPoints[hoveredPoint] && (
               <g>
                 <rect
                   x={actualPoints[hoveredPoint].x + 10}
-                  y={actualPoints[hoveredPoint].y - 120}
-                  width="200"
-                  height="110"
+                  y={actualPoints[hoveredPoint].y - 180}
+                  width="280"
+                  height="170"
                   fill="rgba(0, 0, 0, 0.8)"
                   rx="5"
                 />
-                <text
-                  x={actualPoints[hoveredPoint].x + 15}
-                  y={actualPoints[hoveredPoint].y - 100}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Depth: {actualPoints[hoveredPoint].depth.toFixed(2)}m
-                </text>
-                {showVelocity && (
-                  <text
-                    x={actualPoints[hoveredPoint].x + 15}
-                    y={actualPoints[hoveredPoint].y - 85}
-                    fill="white"
-                    fontSize="12"
-                  >
+                
+                {/* Time and Position Section */}
+                <g transform={`translate(${actualPoints[hoveredPoint].x + 15}, ${actualPoints[hoveredPoint].y - 170})`}>
+                  <text fill="white" fontSize="12" fontWeight="bold">Time and Position</text>
+                  <text y="15" fill="#8db0e8" fontSize="11">
+                    {new Date(actualPoints[hoveredPoint].original.timestamp_ros * 1000).toISOString()}
+                  </text>
+                  <text y="30" fill="#8db0e8" fontSize="11">
+                    Lat: {actualPoints[hoveredPoint].original.latitude.toFixed(6)}°
+                  </text>
+                  <text y="45" fill="#8db0e8" fontSize="11">
+                    Lon: {actualPoints[hoveredPoint].original.longitude.toFixed(6)}°
+                  </text>
+                </g>
+
+                {/* Vehicle State Section */}
+                <g transform={`translate(${actualPoints[hoveredPoint].x + 155}, ${actualPoints[hoveredPoint].y - 170})`}>
+                  <text fill="white" fontSize="12" fontWeight="bold">Vehicle State</text>
+                  <text y="15" fill="#8db0e8" fontSize="11">
+                    Mode: {actualPoints[hoveredPoint].original.navMode}
+                  </text>
+                  <text y="30" fill="#8db0e8" fontSize="11">
+                    Battery: {actualPoints[hoveredPoint].original.battery_volts?.toFixed(2)}V
+                  </text>
+                  <text y="45" fill="#8db0e8" fontSize="11">
+                    Error: {actualPoints[hoveredPoint].original.errorState}
+                  </text>
+                </g>
+
+                {/* Motion Data Section */}
+                <g transform={`translate(${actualPoints[hoveredPoint].x + 15}, ${actualPoints[hoveredPoint].y - 110})`}>
+                  <text fill="white" fontSize="12" fontWeight="bold">Motion Data</text>
+                  <text y="15" fill="#8db0e8" fontSize="11">
+                    Depth: {actualPoints[hoveredPoint].depth.toFixed(2)}m
+                  </text>
+                  <text y="30" fill="#8db0e8" fontSize="11">
                     Velocity: {Math.sqrt(
                       Math.pow(actualPoints[hoveredPoint].original.velX, 2) +
                       Math.pow(actualPoints[hoveredPoint].original.velY, 2) +
                       Math.pow(actualPoints[hoveredPoint].original.velZ, 2)
                     ).toFixed(2)} m/s
                   </text>
-                )}
-                {showModes && (
-                  <text
-                    x={actualPoints[hoveredPoint].x + 15}
-                    y={actualPoints[hoveredPoint].y - 70}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Mode: {actualPoints[hoveredPoint].original.navMode}
-                  </text>
-                )}
-                {showDepthMetrics && (
-                  <text
-                    x={actualPoints[hoveredPoint].x + 15}
-                    y={actualPoints[hoveredPoint].y - 55}
-                    fill="white"
-                    fontSize="12"
-                  >
+                  <text y="45" fill="#8db0e8" fontSize="11">
                     Altimeter: {actualPoints[hoveredPoint].original.acousticAltimeter?.toFixed(2)}m
                   </text>
-                )}
-                {showBattery && (
-                  <text
-                    x={actualPoints[hoveredPoint].x + 15}
-                    y={actualPoints[hoveredPoint].y - 40}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Battery: {actualPoints[hoveredPoint].original.battery_volts?.toFixed(2)}V
+                </g>
+
+                {/* Attitude Section */}
+                <g transform={`translate(${actualPoints[hoveredPoint].x + 155}, ${actualPoints[hoveredPoint].y - 110})`}>
+                  <text fill="white" fontSize="12" fontWeight="bold">Attitude</text>
+                  <text y="15" fill="#8db0e8" fontSize="11">
+                    Roll: {actualPoints[hoveredPoint].original.roll?.toFixed(2)}°
                   </text>
-                )}
-                {showFoundObjects && (
-                  <text
-                    x={actualPoints[hoveredPoint].x + 15}
-                    y={actualPoints[hoveredPoint].y - 25}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Found: {actualPoints[hoveredPoint].original.cotsNumFound || 0}
-                    Maybe: {actualPoints[hoveredPoint].original.cotsNumMaybe || 0}
+                  <text y="30" fill="#8db0e8" fontSize="11">
+                    Pitch: {actualPoints[hoveredPoint].original.pitch?.toFixed(2)}°
                   </text>
-                )}
+                  <text y="45" fill="#8db0e8" fontSize="11">
+                    Yaw: {actualPoints[hoveredPoint].original.yaw?.toFixed(2)}°
+                  </text>
+                </g>
+
+                {/* Detection Data Section */}
+                <g transform={`translate(${actualPoints[hoveredPoint].x + 15}, ${actualPoints[hoveredPoint].y - 50})`}>
+                  <text fill="white" fontSize="12" fontWeight="bold">Detection Data</text>
+                  <text y="15" fill="#8db0e8" fontSize="11">
+                    Found Objects: {actualPoints[hoveredPoint].original.cotsNumFound || 0}
+                  </text>
+                  <text y="30" fill="#8db0e8" fontSize="11">
+                    Maybe Objects: {actualPoints[hoveredPoint].original.cotsNumMaybe || 0}
+                  </text>
+                </g>
               </g>
             )}
 
-            {/* Add dynamic legend based on active visualizations */}
-            <g transform={`translate(${svgWidth - 150}, 20)`}>
-              {showVelocity && (
-                <g>
-                  <text x="0" y="15" fontSize="12" fill="#666">Velocity (m/s):</text>
-                  <rect x="0" y="20" width="100" height="10" fill="url(#velocityGradient)" />
-                  <text x="0" y="45" fontSize="10" fill="#666">{velocityRange.min.toFixed(1)}</text>
-                  <text x="80" y="45" fontSize="10" fill="#666">{velocityRange.max.toFixed(1)}</text>
+            {/* Organized legends in columns */}
+            <g transform={`translate(10, 20)`}>
+              {/* Column 1: Depth and Velocity */}
+              <g>
+                <text x="0" y="15" fontSize="12" fill="#666" fontWeight="bold">Depth (m):</text>
+                <rect x="0" y="20" width="100" height="10" fill="url(#depthGradient)" />
+                <text x="0" y="45" fontSize="10" fill="#666">{depthRange.min.toFixed(1)}</text>
+                <text x="80" y="45" fontSize="10" fill="#666">{depthRange.max.toFixed(1)}</text>
+
+                <text x="0" y="75" fontSize="12" fill="#666" fontWeight="bold">Velocity (m/s):</text>
+                <rect x="0" y="80" width="100" height="10" fill="url(#velocityGradient)" />
+                <text x="0" y="105" fontSize="10" fill="#666">{velocityRange.min.toFixed(1)}</text>
+                <text x="80" y="105" fontSize="10" fill="#666">{velocityRange.max.toFixed(1)}</text>
+              </g>
+
+              {/* Column 2: Battery and Altimeter */}
+              <g transform="translate(150, 0)">
+                <text x="0" y="15" fontSize="12" fill="#666" fontWeight="bold">Battery (V):</text>
+                <rect x="0" y="20" width="100" height="10" fill="url(#batteryGradient)" />
+                <text x="0" y="45" fontSize="10" fill="#666">{batteryRange.min.toFixed(1)}</text>
+                <text x="80" y="45" fontSize="10" fill="#666">{batteryRange.max.toFixed(1)}</text>
+
+                <text x="0" y="75" fontSize="12" fill="#666" fontWeight="bold">Altimeter (m):</text>
+                <rect x="0" y="80" width="100" height="10" fill="url(#altimeterGradient)" />
+                <text x="0" y="105" fontSize="10" fill="#666">{altimeterRange.min.toFixed(1)}</text>
+                <text x="80" y="105" fontSize="10" fill="#666">{altimeterRange.max.toFixed(1)}</text>
+              </g>
+
+              {/* Column 3: Nav Modes and Attitude */}
+              <g transform="translate(300, 0)">
+                <text x="0" y="15" fontSize="12" fill="#666" fontWeight="bold">Nav Modes:</text>
+                {Object.entries(modeColors).map(([mode, color], i) => (
+                  <g key={mode} transform={`translate(0, ${25 + i * 20})`}>
+                    <circle cx="5" cy="5" r="5" fill={color} />
+                    <text x="15" y="9" fontSize="10" fill="#666">Mode {mode}</text>
+                  </g>
+                ))}
+
+                <g transform="translate(0, 100)">
+                  <text x="0" y="0" fontSize="12" fill="#666" fontWeight="bold">Attitude:</text>
+                  <line x1="0" y1="15" x2="20" y2="15" stroke="orange" strokeWidth="2" />
+                  <text x="25" y="19" fontSize="10" fill="#666">Roll</text>
+                  <line x1="0" y1="35" x2="20" y2="35" stroke="green" strokeWidth="2" />
+                  <text x="25" y="39" fontSize="10" fill="#666">Pitch</text>
                 </g>
-              )}
-              {showBattery && (
-                <g transform="translate(0, 60)">
-                  <text x="0" y="15" fontSize="12" fill="#666">Battery (V):</text>
-                  <rect x="0" y="20" width="100" height="10" fill="url(#batteryGradient)" />
-                  <text x="0" y="45" fontSize="10" fill="#666">{batteryRange.min.toFixed(1)}</text>
-                  <text x="80" y="45" fontSize="10" fill="#666">{batteryRange.max.toFixed(1)}</text>
-                </g>
-              )}
-              {showModes && (
-                <g transform="translate(0, 120)">
-                  <text x="0" y="15" fontSize="12" fill="#666">Nav Modes:</text>
-                  {Object.entries(modeColors).map(([mode, color], i) => (
-                    <g key={mode} transform={`translate(0, ${20 + i * 20})`}>
-                      <rect x="0" y="0" width="10" height="10" fill={color} />
-                      <text x="15" y="9" fontSize="10" fill="#666">Mode {mode}</text>
-                    </g>
-                  ))}
-                </g>
-              )}
+              </g>
             </g>
 
-            {/* Add gradients for continuous variables */}
+            {/* Gradients definitions */}
             <defs>
+              <linearGradient id="depthGradient">
+                <stop offset="0%" stopColor="#dbeafe" />
+                <stop offset="100%" stopColor="#1e3a8a" />
+              </linearGradient>
               <linearGradient id="velocityGradient">
                 <stop offset="0%" stopColor="hsl(200, 100%, 50%)" />
                 <stop offset="100%" stopColor="hsl(360, 100%, 50%)" />
@@ -1046,6 +1026,10 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               <linearGradient id="batteryGradient">
                 <stop offset="0%" stopColor="hsl(0, 100%, 50%)" />
                 <stop offset="100%" stopColor="hsl(120, 100%, 50%)" />
+              </linearGradient>
+              <linearGradient id="altimeterGradient">
+                <stop offset="0%" stopColor="hsl(280, 0%, 50%)" />
+                <stop offset="100%" stopColor="hsl(280, 100%, 50%)" />
               </linearGradient>
             </defs>
           </svg>
