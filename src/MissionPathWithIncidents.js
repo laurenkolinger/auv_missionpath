@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Papa from "papaparse";
 import _ from "lodash";
 
@@ -404,75 +404,113 @@ const MissionPathWithIncidents = () => {
   const [csvFileName, setCsvFileName] = useState("");
   const [jsonFileName, setJsonFileName] = useState("");
 
-  // Function to handle CSV file upload
-  const handleCsvUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setCsvFileName(file.name);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const csvText = e.target.result;
-        const parsedResults = Papa.parse(csvText, {
-          header: true,
-          dynamicTyping: true,
-          skipEmptyLines: true,
-        });
+  // Add new state for drag and drop
+  const [isDragging, setIsDragging] = useState(false);
 
-        // Filter out any rows with null coordinates or depth
-        const validData = parsedResults.data.filter(
-          (row) =>
-            row.latitude !== null &&
-            row.longitude !== null &&
-            row.depth !== null
-        );
-
-        if (validData.length === 0) {
-          setError("No valid data points found in CSV file");
-          return;
+  // Function to detect file type based on content
+  const detectFileType = useCallback((fileContent) => {
+    try {
+      // Try to parse as JSON
+      const jsonData = JSON.parse(fileContent);
+      if (jsonData.waypoints && Array.isArray(jsonData.waypoints)) {
+        return 'json';
+      }
+    } catch (e) {
+      // If JSON parse fails, try CSV
+      const csvLines = fileContent.split('\n');
+      if (csvLines.length > 1) {
+        const headers = csvLines[0].toLowerCase();
+        // Check for typical CSV headers we expect
+        if (headers.includes('latitude') && 
+            headers.includes('longitude') && 
+            headers.includes('depth')) {
+          return 'csv';
         }
-
-        processData(validData, plannedData);
-      };
-      reader.readAsText(file);
+      }
     }
-  };
+    return null;
+  }, []);
 
-  // Function to handle JSON file upload
-  const handleJsonUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setJsonFileName(file.name);
+  // Combined file handler for both drop and select
+  const handleFiles = useCallback((files) => {
+    Array.from(files).forEach(file => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        try {
-          const missionData = JSON.parse(e.target.result);
-          
-          // Verify the JSON has the required structure
-          if (!missionData.waypoints || !Array.isArray(missionData.waypoints)) {
-            setError("Invalid mission file format: missing waypoints array");
-            return;
-          }
+        const content = e.target.result;
+        const fileType = detectFileType(content);
 
-          // Verify waypoints have required fields
-          const validWaypoints = missionData.waypoints.every(wp => 
-            wp.latitude !== undefined && 
-            wp.longitude !== undefined && 
-            wp.waypoint_number !== undefined
+        if (fileType === 'json') {
+          try {
+            const missionData = JSON.parse(content);
+            if (!missionData.waypoints || !Array.isArray(missionData.waypoints)) {
+              setError("Invalid mission file format: missing waypoints array");
+              return;
+            }
+            const validWaypoints = missionData.waypoints.every(wp => 
+              wp.latitude !== undefined && 
+              wp.longitude !== undefined && 
+              wp.waypoint_number !== undefined
+            );
+            if (!validWaypoints) {
+              setError("Invalid waypoint data: missing required fields");
+              return;
+            }
+            setJsonFileName(file.name);
+            processData(actualData, missionData.waypoints);
+          } catch (error) {
+            setError("Error parsing mission file: " + error.message);
+          }
+        } else if (fileType === 'csv') {
+          const parsedResults = Papa.parse(content, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+          });
+          const validData = parsedResults.data.filter(
+            (row) =>
+              row.latitude !== null &&
+              row.longitude !== null &&
+              row.depth !== null
           );
-
-          if (!validWaypoints) {
-            setError("Invalid waypoint data: missing required fields");
+          if (validData.length === 0) {
+            setError("No valid data points found in path file");
             return;
           }
-
-          processData(actualData, missionData.waypoints);
-        } catch (error) {
-          setError("Error parsing JSON file: " + error.message);
+          setCsvFileName(file.name);
+          processData(validData, plannedData);
+        } else {
+          setError(`Could not determine file type for ${file.name}. Please ensure it's a valid mission JSON or path CSV file.`);
         }
       };
       reader.readAsText(file);
-    }
-  };
+    });
+  }, [actualData, plannedData, processData, detectFileType]);
+
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const { files } = e.dataTransfer;
+    handleFiles(files);
+  }, [handleFiles]);
 
   // Function to process data when either file is uploaded
   const processData = (newActualData, newPlannedData) => {
@@ -892,60 +930,107 @@ const MissionPathWithIncidents = () => {
     <div style={styles.container}>
       <h2 style={styles.title}>Mission Path with Incidents and Planned Route</h2>
 
-      {/* File upload section */}
-      <div style={{
-        marginBottom: "20px",
-        padding: "20px",
-        backgroundColor: "#f8f9fa",
-        borderRadius: "8px",
-      }}>
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
-            Upload Mission Travel Path (CSV):
-          </label>
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleCsvUpload}
-            style={{ display: "block" }}
-          />
-          {csvFileName && (
-            <span style={{ fontSize: "0.875rem", color: "#666" }}>
-              Loaded: {csvFileName}
-            </span>
-          )}
+      {/* Enhanced file upload section */}
+      <div
+        style={{
+          marginBottom: "20px",
+          padding: "20px",
+          backgroundColor: isDragging ? "#e2e8f0" : "#f8f9fa",
+          borderRadius: "8px",
+          border: `2px dashed ${isDragging ? "#3b82f6" : "#e2e8f0"}`,
+          transition: "all 0.2s ease",
+        }}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <p style={{ fontSize: "1.1rem", fontWeight: "500", marginBottom: "8px" }}>
+            Drop Files Here or Click to Upload
+          </p>
+          <p style={{ fontSize: "0.9rem", color: "#666" }}>
+            Upload your mission files in any order - we'll automatically detect them
+          </p>
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
-            Upload Mission File (JSON):
-          </label>
-          <input
-            type="file"
-            accept=".json"
-            onChange={handleJsonUpload}
-            style={{ display: "block" }}
-          />
-          {jsonFileName && (
-            <span style={{ fontSize: "0.875rem", color: "#666" }}>
-              Loaded: {jsonFileName}
-            </span>
-          )}
+        <div style={{ 
+          display: "grid", 
+          gridTemplateColumns: "1fr 1fr", 
+          gap: "20px",
+          marginBottom: "20px" 
+        }}>
+          <div style={{
+            padding: "15px",
+            backgroundColor: "white",
+            borderRadius: "6px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+          }}>
+            <h3 style={{ fontSize: "0.9rem", fontWeight: "600", marginBottom: "10px" }}>
+              Mission Path File (CSV)
+            </h3>
+            <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: "10px" }}>
+              Required columns: latitude, longitude, depth, timestamp_ros, roll, pitch, yaw
+            </p>
+            <input
+              type="file"
+              accept=".csv,.txt"
+              onChange={(e) => handleFiles(e.target.files)}
+              style={{ display: "block", width: "100%" }}
+            />
+            {csvFileName && (
+              <div style={{ marginTop: "8px", fontSize: "0.8rem", color: "#059669" }}>
+                ✓ Loaded: {csvFileName}
+              </div>
+            )}
+          </div>
+
+          <div style={{
+            padding: "15px",
+            backgroundColor: "white",
+            borderRadius: "6px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+          }}>
+            <h3 style={{ fontSize: "0.9rem", fontWeight: "600", marginBottom: "10px" }}>
+              Mission File (JSON)
+            </h3>
+            <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: "10px" }}>
+              Must contain waypoints array with latitude, longitude, and waypoint_number
+            </p>
+            <input
+              type="file"
+              accept=".json"
+              onChange={(e) => handleFiles(e.target.files)}
+              style={{ display: "block", width: "100%" }}
+            />
+            {jsonFileName && (
+              <div style={{ marginTop: "8px", fontSize: "0.8rem", color: "#059669" }}>
+                ✓ Loaded: {jsonFileName}
+              </div>
+            )}
+          </div>
         </div>
 
-        <button
-          style={styles.button}
-          onClick={() => {
-            setActualData([]);
-            setPlannedData([]);
-            setCsvFileName("");
-            setJsonFileName("");
-            setDataLoaded(false);
-            setError(null);
-          }}
-        >
-          Clear Data
-        </button>
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+          <button
+            style={{
+              ...styles.button,
+              backgroundColor: "#dc2626",
+              opacity: (!csvFileName && !jsonFileName) ? "0.5" : "1",
+            }}
+            onClick={() => {
+              setActualData([]);
+              setPlannedData([]);
+              setCsvFileName("");
+              setJsonFileName("");
+              setDataLoaded(false);
+              setError(null);
+            }}
+            disabled={!csvFileName && !jsonFileName}
+          >
+            Clear Files
+          </button>
+        </div>
       </div>
 
       {error && (
