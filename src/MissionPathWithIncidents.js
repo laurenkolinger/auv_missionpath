@@ -304,8 +304,186 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
         Mission Path Visualization
       </h2>
 
-      {/* Keep the visualization section, remove file upload UI */}
-      {/* ... rest of your existing visualization JSX ... */}
+      <div style={{ position: "relative", width: "100%", aspectRatio: "16/9" }}>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 1000 1000"
+          style={{ border: "1px solid #ccc", borderRadius: "8px" }}
+        >
+          {/* Draw the actual path */}
+          {actualData.map((point, index) => {
+            if (index === 0) return null;
+            const prev = actualData[index - 1];
+            const start = mapToSVG(prev.latitude, prev.longitude, 1000, 1000);
+            const end = mapToSVG(point.latitude, point.longitude, 1000, 1000);
+            return (
+              <line
+                key={`path-${index}`}
+                x1={start.x}
+                y1={start.y}
+                x2={end.x}
+                y2={end.y}
+                stroke={getColorForDepth(point.depth)}
+                strokeWidth="2"
+              />
+            );
+          })}
+
+          {/* Draw the planned path */}
+          {plannedData.map((point, index) => {
+            if (index === 0) return null;
+            const prev = plannedData[index - 1];
+            const start = mapToSVG(prev.latitude, prev.longitude, 1000, 1000);
+            const end = mapToSVG(point.latitude, point.longitude, 1000, 1000);
+            return (
+              <g key={`planned-${index}`}>
+                <line
+                  x1={start.x}
+                  y1={start.y}
+                  x2={end.x}
+                  y2={end.y}
+                  stroke="purple"
+                  strokeWidth="1"
+                  strokeDasharray="5,5"
+                />
+                <circle
+                  cx={end.x}
+                  cy={end.y}
+                  r="4"
+                  fill="purple"
+                  onMouseEnter={() => {
+                    setHoveredPoint(point);
+                    setHoveredType("waypoint");
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredPoint(null);
+                    setHoveredType(null);
+                  }}
+                />
+              </g>
+            );
+          })}
+
+          {/* Draw incident markers */}
+          {incidents.map((incident, index) => {
+            const pos = mapToSVG(incident.latitude, incident.longitude, 1000, 1000);
+            return (
+              <g key={`incident-${index}`}>
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r="8"
+                  fill="red"
+                  fillOpacity="0.5"
+                  stroke="red"
+                  strokeWidth="2"
+                  onMouseEnter={() => {
+                    setHoveredIncident(incident);
+                    setHoveredType("incident");
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredIncident(null);
+                    setHoveredType(null);
+                  }}
+                />
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* Tooltip for waypoints */}
+        {hoveredPoint && hoveredType === "waypoint" && (
+          <div
+            style={{
+              position: "absolute",
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              color: "white",
+              padding: "8px",
+              borderRadius: "4px",
+              fontSize: "14px",
+              top: "20px",
+              left: "20px",
+              pointerEvents: "none"
+            }}
+          >
+            <div>Waypoint {hoveredPoint.waypoint_number}</div>
+            <div>Lat: {hoveredPoint.latitude.toFixed(6)}</div>
+            <div>Long: {hoveredPoint.longitude.toFixed(6)}</div>
+          </div>
+        )}
+
+        {/* Tooltip for incidents */}
+        {hoveredIncident && hoveredType === "incident" && (
+          <div
+            style={{
+              position: "absolute",
+              backgroundColor: "rgba(255, 0, 0, 0.8)",
+              color: "white",
+              padding: "8px",
+              borderRadius: "4px",
+              fontSize: "14px",
+              top: "20px",
+              left: "20px",
+              pointerEvents: "none"
+            }}
+          >
+            <div>Incident ({hoveredIncident.count} events)</div>
+            <div>Primary: {hoveredIncident.primaryReason}</div>
+            {hoveredIncident.allReasons.length > 1 && (
+              <div>
+                Other issues:
+                <ul style={{ margin: "4px 0 0 20px", padding: 0 }}>
+                  {hoveredIncident.allReasons.slice(1).map((reason, idx) => (
+                    <li key={idx}>{reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Legend */}
+      <div style={{
+        display: "flex",
+        gap: "20px",
+        justifyContent: "center",
+        fontSize: "14px"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ width: "20px", height: "2px", backgroundColor: "blue" }} />
+          <span>Actual Path</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ width: "20px", height: "2px", backgroundColor: "purple", borderStyle: "dashed" }} />
+          <span>Planned Path</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ width: "8px", height: "8px", backgroundColor: "red", borderRadius: "50%" }} />
+          <span>Incidents</span>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div style={{
+        display: "flex",
+        gap: "10px",
+        justifyContent: "center"
+      }}>
+        <button
+          onClick={toggleAttitude}
+          style={{
+            padding: "8px 16px",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
+            background: showAttitude ? "#e0e0e0" : "white",
+            cursor: "pointer"
+          }}
+        >
+          {showAttitude ? "Hide Attitude" : "Show Attitude"}
+        </button>
+      </div>
     </div>
   );
 };
