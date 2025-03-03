@@ -67,27 +67,31 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
     return `hsl(280, ${normalizedAlt * 100}%, 50%)`; // Purple gradient
   };
 
-  // Replace the formatTimestampSys function with this version
-  const formatTimestampSys = (timestamp) => {
+  // Function to format time only (HH:MM:SS)
+  const formatTimeOnly = (timestamp) => {
     // Parse the timestamp string (YYYYMMDDHHmmSS.ffffff)
-    const year = parseInt(timestamp.substring(0, 4));
-    const month = parseInt(timestamp.substring(4, 6)) - 1;
-    const day = parseInt(timestamp.substring(6, 8));
     const hour = parseInt(timestamp.substring(8, 10));
     const minute = parseInt(timestamp.substring(10, 12));
     const second = parseInt(timestamp.substring(12, 14));
     
-    // Create UTC date
-    const utcDate = new Date(Date.UTC(year, month, day, hour, minute, second));
-    
-    // Convert to AST (UTC-4)
+    // Create UTC date and convert to AST
+    const utcDate = new Date(Date.UTC(2025, 0, 1, hour, minute, second));
     const astDate = new Date(utcDate.getTime() - (4 * 60 * 60 * 1000));
     
-    // Format the date
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    // Format just the time
     const pad = (num) => String(num).padStart(2, '0');
+    return `${pad(astDate.getUTCHours())}:${pad(astDate.getUTCMinutes())}:${pad(astDate.getUTCSeconds())}`;
+  };
+
+  // Function to format date only (d Month YYYY)
+  const formatDateOnly = (timestamp) => {
+    const year = parseInt(timestamp.substring(0, 4));
+    const month = parseInt(timestamp.substring(4, 6)) - 1;
+    const day = parseInt(timestamp.substring(6, 8));
     
-    return `${pad(astDate.getUTCDate())} ${months[astDate.getUTCMonth()]} ${astDate.getUTCFullYear()} ${pad(astDate.getUTCHours())}:${pad(astDate.getUTCMinutes())}:${pad(astDate.getUTCSeconds())}`;
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+    return `${day} ${months[month]} ${year}`;
   };
 
   useEffect(() => {
@@ -574,11 +578,10 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
     <div style={styles.container}>
       <h2 style={styles.title}>
         {missionName}
-        <br />
         {timeRange.start && timeRange.end && (
-          <span style={{ fontSize: "1rem", color: "#64748b" }}>
-            {formatTimestampSys(timeRange.start)} - {formatTimestampSys(timeRange.end)} AST
-          </span>
+          <div style={{ fontSize: "1rem", color: "#64748b", marginTop: "4px" }}>
+            {formatDateOnly(timeRange.start)} ({formatTimeOnly(timeRange.start)} - {formatTimeOnly(timeRange.end)} AST)
+          </div>
         )}
       </h2>
 
@@ -749,26 +752,69 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               </React.Fragment>
             ))}
 
-            {/* Base black points */}
+            {/* Base black points with tooltip */}
             {showBasePoints && actualPoints.map((point, index) => (
-              <circle
-                key={`base-point-${index}`}
-                cx={point.x}
-                cy={point.y}
-                r="3"
-                fill="black"
-                fillOpacity="0.7"
-                stroke={hoveredPoint === index && hoveredType === "base" ? "#000" : "none"}
-                strokeWidth="1"
-                onMouseEnter={() => {
-                  setHoveredPoint(index);
-                  setHoveredType("base");
-                }}
-                onMouseLeave={() => {
-                  setHoveredPoint(null);
-                  setHoveredType(null);
-                }}
-              />
+              <React.Fragment key={`base-point-${index}`}>
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="3"
+                  fill="black"
+                  fillOpacity="0.7"
+                  stroke={hoveredPoint === index && hoveredType === "base" ? "#000" : "none"}
+                  strokeWidth="1"
+                  onMouseEnter={() => {
+                    setHoveredPoint(index);
+                    setHoveredType("base");
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredPoint(null);
+                    setHoveredType(null);
+                  }}
+                />
+                {hoveredPoint === index && hoveredType === "base" && (
+                  <g>
+                    <rect
+                      x={point.x + 10}
+                      y={point.y - 80}
+                      width="240"
+                      height="160"
+                      fill="#1e293b"
+                      fillOpacity="0.95"
+                      rx="4"
+                    />
+                    <text x={point.x + 20} y={point.y - 60} fill="white" fontSize="12" fontWeight="bold">
+                      Time and Position
+                    </text>
+                    <text x={point.x + 20} y={point.y - 45} fill="#8db0e8" fontSize="11">
+                      {formatTimestampSys(point.original.timestamp_sys)}
+                    </text>
+                    <text x={point.x + 20} y={point.y - 30} fill="#8db0e8" fontSize="11">
+                      Lat: {point.original.latitude.toFixed(6)}°
+                    </text>
+                    <text x={point.x + 20} y={point.y - 15} fill="#8db0e8" fontSize="11">
+                      Long: {point.original.longitude.toFixed(6)}°
+                    </text>
+
+                    <text x={point.x + 20} y={point.y} fill="white" fontSize="12" fontWeight="bold">
+                      Vehicle State
+                    </text>
+                    <text x={point.x + 20} y={point.y + 15} fill="#8db0e8" fontSize="11">
+                      Mode: {point.original.navMode} | Battery: {point.original.battery_volts.toFixed(2)}V
+                    </text>
+                    <text x={point.x + 20} y={point.y + 30} fill="#8db0e8" fontSize="11">
+                      Error State: {point.original.errorState}
+                    </text>
+
+                    <text x={point.x + 20} y={point.y + 45} fill="white" fontSize="12" fontWeight="bold">
+                      Motion Data
+                    </text>
+                    <text x={point.x + 20} y={point.y + 60} fill="#8db0e8" fontSize="11">
+                      Depth: {point.original.depth.toFixed(2)}m | Alt: {point.original.acousticAltimeter.toFixed(2)}m
+                    </text>
+                  </g>
+                )}
+              </React.Fragment>
             ))}
 
             {/* Draw data points based on toggle state */}
@@ -945,6 +991,33 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                 >
                   {marker.incident.count > 9 ? "!" : marker.incident.count}
                 </text>
+                {hoveredIncident === index && (
+                  <g>
+                    <rect
+                      x={marker.x + 10}
+                      y={marker.y - 60}
+                      width="240"
+                      height="120"
+                      fill="#1e293b"
+                      fillOpacity="0.95"
+                      rx="4"
+                    />
+                    <text x={marker.x + 20} y={marker.y - 40} fill="white" fontSize="12" fontWeight="bold">
+                      Incident Cluster
+                    </text>
+                    <text x={marker.x + 20} y={marker.y - 25} fill="#8db0e8" fontSize="11">
+                      Events: {marker.incident.count}
+                    </text>
+                    <text x={marker.x + 20} y={marker.y - 10} fill="#8db0e8" fontSize="11">
+                      Primary: {marker.incident.primaryReason}
+                    </text>
+                    {marker.incident.allReasons.slice(1).map((reason, i) => (
+                      <text key={i} x={marker.x + 20} y={marker.y + 5 + i * 15} fill="#8db0e8" fontSize="11">
+                        Also: {reason}
+                      </text>
+                    ))}
+                  </g>
+                )}
               </g>
             ))}
           </svg>
