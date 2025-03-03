@@ -19,6 +19,8 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [hoveredType, setHoveredType] = useState(null);
   const [hoveredIncident, setHoveredIncident] = useState(null);
   const [showIncidents, setShowIncidents] = useState(true);
+  const [missionName, setMissionName] = useState("");
+  const [timeRange, setTimeRange] = useState({ start: "", end: "" });
 
   // New state variables for data toggles
   const [showAttitudeIndicators, setShowAttitudeIndicators] = useState(true);
@@ -85,6 +87,19 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
           dynamicTyping: true,
           skipEmptyLines: true,
         });
+
+        // Get time range from timestamp_sys
+        const timeStamps = parsedResults.data
+          .map(row => row.timestamp_sys)
+          .filter(Boolean)
+          .sort();
+        
+        if (timeStamps.length > 0) {
+          setTimeRange({
+            start: timeStamps[0],
+            end: timeStamps[timeStamps.length - 1]
+          });
+        }
 
         // Filter out any rows with null coordinates or depth
         const validData = parsedResults.data.filter(
@@ -170,6 +185,9 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
         setActualData(sampledData);
         setPlannedData(missionData.waypoints);
         setLoading(false);
+
+        // Load mission name from JSON
+        setMissionName(missionData.mission_summary?.mission_name || "Mission");
       } catch (err) {
         console.error("Error in loadData:", err);
         setError(`Error loading or processing data: ${err.message}`);
@@ -390,9 +408,12 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
       padding: "16px",
     },
     title: {
-      fontSize: "1.25rem",
+      fontSize: "1.5rem",
       fontWeight: "bold",
-      marginBottom: "16px",
+      marginBottom: "24px",
+      color: "#1e293b",
+      textAlign: "center",
+      lineHeight: "1.4",
     },
     card: {
       backgroundColor: "white",
@@ -401,24 +422,24 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
       width: "100%",
     },
-    header: {
-      display: "flex",
-      justifyContent: "space-between",
-      marginBottom: "16px",
-    },
     buttonContainer: {
       display: "flex",
       gap: "8px",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      marginBottom: "16px",
     },
     button: {
       backgroundColor: "#3b82f6",
       color: "white",
-      fontWeight: "bold",
-      padding: "4px 8px",
-      borderRadius: "4px",
+      fontWeight: "500",
+      padding: "6px 12px",
+      borderRadius: "6px",
       fontSize: "0.875rem",
       border: "none",
       cursor: "pointer",
+      transition: "all 0.2s ease",
+      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
     },
     legendContainer: {
       display: "flex",
@@ -508,11 +529,34 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
       fontSize: "0.75rem",
       color: "#6b7280",
     },
+    legendsContainer: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "24px",
+      padding: "24px",
+      backgroundColor: "#f8fafc",
+      borderRadius: "8px",
+      marginTop: "24px",
+    },
+    legendRow: {
+      display: "flex",
+      gap: "32px",
+      justifyContent: "center",
+      alignItems: "center",
+    },
   };
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Mission Path with Incidents and Planned Route</h2>
+      <h2 style={styles.title}>
+        {missionName}
+        <br />
+        {timeRange.start && timeRange.end && (
+          <span style={{ fontSize: "1rem", color: "#64748b" }}>
+            {`${timeRange.start.substring(0, 8)}T${timeRange.start.substring(8, 14)} to ${timeRange.end.substring(0, 8)}T${timeRange.end.substring(8, 14)}`}
+          </span>
+        )}
+      </h2>
 
       {error && (
         <div style={{
@@ -537,73 +581,80 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
 
       {!loading && !error && (
         <div style={styles.card}>
-          <div style={styles.header}>
-            <div style={styles.buttonContainer}>
-              <button 
-                style={{...styles.button, backgroundColor: showIncidents ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowIncidents(!showIncidents)}
-              >
-                {showIncidents ? "Hide Incidents" : "Show Incidents"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showAttitudeIndicators ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowAttitudeIndicators(!showAttitudeIndicators)}
-              >
-                {showAttitudeIndicators ? "Hide Attitude" : "Show Attitude"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showDepthPoints ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowDepthPoints(!showDepthPoints)}
-              >
-                {showDepthPoints ? "Hide Depth Points" : "Show Depth Points"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showVelocityPoints ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowVelocityPoints(!showVelocityPoints)}
-              >
-                {showVelocityPoints ? "Hide Velocity Points" : "Show Velocity Points"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showModePoints ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowModePoints(!showModePoints)}
-              >
-                {showModePoints ? "Hide Mode Points" : "Show Mode Points"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showBatteryPoints ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowBatteryPoints(!showBatteryPoints)}
-              >
-                {showBatteryPoints ? "Hide Battery Points" : "Show Battery Points"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showAltimeterPoints ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowAltimeterPoints(!showAltimeterPoints)}
-              >
-                {showAltimeterPoints ? "Hide Altimeter Points" : "Show Altimeter Points"}
-              </button>
-            </div>
-            <div style={styles.legendContainer}>
-              <div style={styles.legendItem}>
-                <div
-                  style={{ ...styles.legendDot, backgroundColor: "#3b82f6" }}
-                ></div>
-                <span>Actual Path</span>
-              </div>
-              <div style={styles.legendItem}>
-                <div style={styles.legendLine}></div>
-                <span>Planned Route</span>
-              </div>
-              {showIncidents && (
-                <div style={styles.legendItem}>
-                  <div
-                    style={{ ...styles.legendDot, backgroundColor: "#ef4444" }}
-                  ></div>
-                  <span>Incidents ({incidents.length})</span>
-                </div>
-              )}
-            </div>
+          <div style={styles.buttonContainer}>
+            <button 
+              style={{
+                ...styles.button,
+                backgroundColor: showIncidents ? "#3b82f6" : "#e2e8f0",
+                color: showIncidents ? "white" : "#64748b",
+              }}
+              onClick={() => setShowIncidents(!showIncidents)}
+            >
+              {showIncidents ? "Hide Incidents" : "Show Incidents"}
+            </button>
+            <button 
+              style={{
+                ...styles.button,
+                backgroundColor: showAttitudeIndicators ? "#3b82f6" : "#e2e8f0",
+                color: showAttitudeIndicators ? "white" : "#64748b",
+              }}
+              onClick={() => setShowAttitudeIndicators(!showAttitudeIndicators)}
+            >
+              {showAttitudeIndicators ? "Hide Attitude" : "Show Attitude"}
+            </button>
+            <button 
+              style={{
+                ...styles.button,
+                backgroundColor: showDepthPoints ? "#3b82f6" : "#e2e8f0",
+                color: showDepthPoints ? "white" : "#64748b",
+              }}
+              onClick={() => setShowDepthPoints(!showDepthPoints)}
+            >
+              {showDepthPoints ? "Hide Depth Points" : "Show Depth Points"}
+            </button>
+            <button 
+              style={{
+                ...styles.button,
+                backgroundColor: showVelocityPoints ? "#3b82f6" : "#e2e8f0",
+                color: showVelocityPoints ? "white" : "#64748b",
+              }}
+              onClick={() => setShowVelocityPoints(!showVelocityPoints)}
+            >
+              {showVelocityPoints ? "Hide Velocity Points" : "Show Velocity Points"}
+            </button>
+            <button 
+              style={{
+                ...styles.button,
+                backgroundColor: showModePoints ? "#3b82f6" : "#e2e8f0",
+                color: showModePoints ? "white" : "#64748b",
+              }}
+              onClick={() => setShowModePoints(!showModePoints)}
+            >
+              {showModePoints ? "Hide Mode Points" : "Show Mode Points"}
+            </button>
+            <button 
+              style={{
+                ...styles.button,
+                backgroundColor: showBatteryPoints ? "#3b82f6" : "#e2e8f0",
+                color: showBatteryPoints ? "white" : "#64748b",
+              }}
+              onClick={() => setShowBatteryPoints(!showBatteryPoints)}
+            >
+              {showBatteryPoints ? "Hide Battery Points" : "Show Battery Points"}
+            </button>
+            <button 
+              style={{
+                ...styles.button,
+                backgroundColor: showAltimeterPoints ? "#3b82f6" : "#e2e8f0",
+                color: showAltimeterPoints ? "white" : "#64748b",
+              }}
+              onClick={() => setShowAltimeterPoints(!showAltimeterPoints)}
+            >
+              {showAltimeterPoints ? "Hide Altimeter Points" : "Show Altimeter Points"}
+            </button>
           </div>
 
+          {/* SVG plot */}
           <svg
             width="100%"
             height={svgHeight}
@@ -948,90 +999,145 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                 })()}
               </g>
             )}
-
-            {/* Organized legends in columns */}
-            <g transform={`translate(10, 20)`}>
-              {/* Column 1: Depth and Velocity */}
-              <g>
-                <text x="0" y="15" fontSize="12" fill="#666" fontWeight="bold">Depth (m):</text>
-                <rect x="0" y="20" width="100" height="10" fill="url(#depthGradient)" />
-                <text x="0" y="45" fontSize="10" fill="#666">{depthRange.min.toFixed(1)}</text>
-                <text x="80" y="45" fontSize="10" fill="#666">{depthRange.max.toFixed(1)}</text>
-
-                <text x="0" y="75" fontSize="12" fill="#666" fontWeight="bold">Velocity (m/s):</text>
-                <rect x="0" y="80" width="100" height="10" fill="url(#velocityGradient)" />
-                <text x="0" y="105" fontSize="10" fill="#666">{velocityRange.min.toFixed(1)}</text>
-                <text x="80" y="105" fontSize="10" fill="#666">{velocityRange.max.toFixed(1)}</text>
-              </g>
-
-              {/* Column 2: Battery and Altimeter */}
-              <g transform="translate(150, 0)">
-                <text x="0" y="15" fontSize="12" fill="#666" fontWeight="bold">Battery (V):</text>
-                <rect x="0" y="20" width="100" height="10" fill="url(#batteryGradient)" />
-                <text x="0" y="45" fontSize="10" fill="#666">{batteryRange.min.toFixed(1)}</text>
-                <text x="80" y="45" fontSize="10" fill="#666">{batteryRange.max.toFixed(1)}</text>
-
-                <text x="0" y="75" fontSize="12" fill="#666" fontWeight="bold">Altimeter (m):</text>
-                <rect x="0" y="80" width="100" height="10" fill="url(#altimeterGradient)" />
-                <text x="0" y="105" fontSize="10" fill="#666">{altimeterRange.min.toFixed(1)}</text>
-                <text x="80" y="105" fontSize="10" fill="#666">{altimeterRange.max.toFixed(1)}</text>
-              </g>
-
-              {/* Column 3: Nav Modes and Attitude */}
-              <g transform="translate(300, 0)">
-                <text x="0" y="15" fontSize="12" fill="#666" fontWeight="bold">Nav Modes:</text>
-                {Object.entries(modeColors).map(([mode, color], i) => (
-                  <g key={mode} transform={`translate(0, ${25 + i * 20})`}>
-                    <circle cx="5" cy="5" r="5" fill={color} />
-                    <text x="15" y="9" fontSize="10" fill="#666">Mode {mode}</text>
-                  </g>
-                ))}
-
-                <g transform="translate(0, 100)">
-                  <text x="0" y="0" fontSize="12" fill="#666" fontWeight="bold">Attitude:</text>
-                  <line x1="0" y1="15" x2="20" y2="15" stroke="orange" strokeWidth="2" />
-                  <text x="25" y="19" fontSize="10" fill="#666">Roll</text>
-                  <line x1="0" y1="35" x2="20" y2="35" stroke="green" strokeWidth="2" />
-                  <text x="25" y="39" fontSize="10" fill="#666">Pitch</text>
-                </g>
-              </g>
-            </g>
-
-            {/* Gradients definitions */}
-            <defs>
-              <linearGradient id="depthGradient">
-                <stop offset="0%" stopColor="#dbeafe" />
-                <stop offset="100%" stopColor="#1e3a8a" />
-              </linearGradient>
-              <linearGradient id="velocityGradient">
-                <stop offset="0%" stopColor="hsl(200, 100%, 50%)" />
-                <stop offset="100%" stopColor="hsl(360, 100%, 50%)" />
-              </linearGradient>
-              <linearGradient id="batteryGradient">
-                <stop offset="0%" stopColor="hsl(0, 100%, 50%)" />
-                <stop offset="100%" stopColor="hsl(120, 100%, 50%)" />
-              </linearGradient>
-              <linearGradient id="altimeterGradient">
-                <stop offset="0%" stopColor="hsl(280, 0%, 50%)" />
-                <stop offset="100%" stopColor="hsl(280, 100%, 50%)" />
-              </linearGradient>
-            </defs>
           </svg>
 
-          {/* Depth legend */}
-          <div style={styles.depthLegend}>
-            <h3 style={styles.legendTitle}>Depth Scale</h3>
-            <div style={styles.depthBar}></div>
-            <div style={styles.depthLabels}>
-              <span style={{ fontSize: "0.875rem" }}>
-                {depthRange.min.toFixed(2)} m (Shallow)
-              </span>
-              <span style={{ fontSize: "0.875rem" }}>
-                {((depthRange.min + depthRange.max) / 2).toFixed(2)} m
-              </span>
-              <span style={{ fontSize: "0.875rem" }}>
-                {depthRange.max.toFixed(2)} m (Deep)
-              </span>
+          {/* Combined Legends Section */}
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "24px",
+            padding: "24px",
+            backgroundColor: "#f8fafc",
+            borderRadius: "8px",
+            marginTop: "24px",
+          }}>
+            {/* Path Types */}
+            <div style={{
+              display: "flex",
+              gap: "32px",
+              justifyContent: "center",
+              alignItems: "center",
+              borderBottom: "1px solid #e2e8f0",
+              paddingBottom: "16px",
+            }}>
+              <div style={styles.legendItem}>
+                <div style={{ ...styles.legendDot, backgroundColor: "black" }}></div>
+                <span>Actual Path</span>
+              </div>
+              <div style={styles.legendItem}>
+                <div style={{ ...styles.legendLine, borderTop: "2px dashed black" }}></div>
+                <span>Planned Route</span>
+              </div>
+              {showIncidents && (
+                <div style={styles.legendItem}>
+                  <div style={{ ...styles.legendDot, backgroundColor: "#ef4444" }}></div>
+                  <span>Incidents ({incidents.length})</span>
+                </div>
+              )}
+            </div>
+
+            {/* Data Types */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "32px",
+              justifyContent: "center",
+            }}>
+              {/* Column 1: Depth and Velocity */}
+              <div>
+                <div style={{ marginBottom: "16px" }}>
+                  <div style={{ fontWeight: "600", marginBottom: "8px" }}>Depth (m)</div>
+                  <div style={{ 
+                    width: "100%", 
+                    height: "12px", 
+                    background: "linear-gradient(to right, #dbeafe, #1e3a8a)",
+                    borderRadius: "4px",
+                    marginBottom: "4px"
+                  }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem" }}>
+                    <span>{depthRange.min.toFixed(1)}</span>
+                    <span>{depthRange.max.toFixed(1)}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontWeight: "600", marginBottom: "8px" }}>Velocity (m/s)</div>
+                  <div style={{ 
+                    width: "100%", 
+                    height: "12px", 
+                    background: "linear-gradient(to right, hsl(200, 100%, 50%), hsl(360, 100%, 50%))",
+                    borderRadius: "4px",
+                    marginBottom: "4px"
+                  }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem" }}>
+                    <span>{velocityRange.min.toFixed(1)}</span>
+                    <span>{velocityRange.max.toFixed(1)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 2: Battery and Altimeter */}
+              <div>
+                <div style={{ marginBottom: "16px" }}>
+                  <div style={{ fontWeight: "600", marginBottom: "8px" }}>Battery (V)</div>
+                  <div style={{ 
+                    width: "100%", 
+                    height: "12px", 
+                    background: "linear-gradient(to right, hsl(0, 100%, 50%), hsl(120, 100%, 50%))",
+                    borderRadius: "4px",
+                    marginBottom: "4px"
+                  }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem" }}>
+                    <span>{batteryRange.min.toFixed(1)}</span>
+                    <span>{batteryRange.max.toFixed(1)}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontWeight: "600", marginBottom: "8px" }}>Altimeter (m)</div>
+                  <div style={{ 
+                    width: "100%", 
+                    height: "12px", 
+                    background: "linear-gradient(to right, hsl(280, 0%, 50%), hsl(280, 100%, 50%))",
+                    borderRadius: "4px",
+                    marginBottom: "4px"
+                  }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem" }}>
+                    <span>{altimeterRange.min.toFixed(1)}</span>
+                    <span>{altimeterRange.max.toFixed(1)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 3: Nav Modes and Attitude */}
+              <div>
+                <div style={{ marginBottom: "16px" }}>
+                  <div style={{ fontWeight: "600", marginBottom: "8px" }}>Nav Modes</div>
+                  {Object.entries(modeColors).map(([mode, color]) => (
+                    <div key={mode} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                      <div style={{ 
+                        width: "12px", 
+                        height: "12px", 
+                        borderRadius: "50%", 
+                        backgroundColor: color 
+                      }} />
+                      <span style={{ fontSize: "0.875rem" }}>Mode {mode}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <div style={{ fontWeight: "600", marginBottom: "8px" }}>Attitude</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <div style={{ width: "20px", height: "2px", backgroundColor: "orange" }} />
+                    <span style={{ fontSize: "0.875rem" }}>Roll</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ width: "20px", height: "2px", backgroundColor: "green" }} />
+                    <span style={{ fontSize: "0.875rem" }}>Pitch</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1097,10 +1203,9 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
           )}
 
           <div style={styles.footer}>
-            Hover over points to see detailed information. The actual path is
-            colored from light blue (shallow) to dark blue (deep), while the
-            planned route is shown as a purple dotted line with numbered
-            waypoints. Red circles indicate incident clusters.
+            Hover over points to see detailed information. The actual path is shown in black,
+            while the planned route is shown as a black dotted line with numbered waypoints.
+            Toggle different data points using the buttons above to visualize various mission metrics.
           </div>
         </div>
       )}
