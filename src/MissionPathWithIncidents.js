@@ -787,7 +787,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                       Time and Position
                     </text>
                     <text x={point.x + 20} y={point.y - 45} fill="#8db0e8" fontSize="11">
-                      {formatTimestampSys(point.original.timestamp_sys)}
+                      {formatDateOnly(point.original.timestamp_sys)} {formatTimeOnly(point.original.timestamp_sys)} AST
                     </text>
                     <text x={point.x + 20} y={point.y - 30} fill="#8db0e8" fontSize="11">
                       Lat: {point.original.latitude.toFixed(6)}°
