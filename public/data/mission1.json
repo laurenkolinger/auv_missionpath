@@ -1,0 +1,19 @@
+{
+  "waypoints": [
+    {
+      "waypoint_number": 1,
+      "latitude": 47.6062,
+      "longitude": -122.3321
+    },
+    {
+      "waypoint_number": 2,
+      "latitude": 47.6082,
+      "longitude": -122.3351
+    },
+    {
+      "waypoint_number": 3,
+      "latitude": 47.6102,
+      "longitude": -122.3381
+    }
+  ]
+} 
