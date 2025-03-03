@@ -754,26 +754,47 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath, usblPath })
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
             style={styles.svgContainer}
           >
-            {/* USBL track */}
-            {showUsblTrack && usblData.map((point, index) => {
-              const { x, y } = mapToSVG(
-                point.latitude,
-                point.longitude,
-                svgWidth,
-                svgHeight
-              );
-              return (
-                <circle
-                  key={`usbl-point-${index}`}
-                  cx={x}
-                  cy={y}
-                  r="2"
-                  fill={getColorForDepth(point.depth)}
-                  stroke="none"
-                  opacity="0.8"
+            {/* USBL track line and points */}
+            {showUsblTrack && (
+              <>
+                {/* USBL connecting line */}
+                <path
+                  d={usblData.map((point, i) => {
+                    const { x, y } = mapToSVG(
+                      point.latitude,
+                      point.longitude,
+                      svgWidth,
+                      svgHeight
+                    );
+                    return `${i === 0 ? "M" : "L"} ${x},${y}`;
+                  }).join(" ")}
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="1"
+                  opacity="0.5"
                 />
-              );
-            })}
+                {/* USBL points */}
+                {usblData.map((point, index) => {
+                  const { x, y } = mapToSVG(
+                    point.latitude,
+                    point.longitude,
+                    svgWidth,
+                    svgHeight
+                  );
+                  return (
+                    <circle
+                      key={`usbl-point-${index}`}
+                      cx={x}
+                      cy={y}
+                      r="2"
+                      fill={getColorForDepth(point.depth)}
+                      stroke="none"
+                      opacity="0.8"
+                    />
+                  );
+                })}
+              </>
+            )}
 
             {/* Base black lines for actual and planned paths */}
             <path
