@@ -20,6 +20,48 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [hoveredIncident, setHoveredIncident] = useState(null);
   const [showIncidents, setShowIncidents] = useState(true);
 
+  // New state variables for data toggles
+  const [showAttitudeIndicators, setShowAttitudeIndicators] = useState(true);
+  const [showVelocity, setShowVelocity] = useState(false);
+  const [showModes, setShowModes] = useState(false);
+  const [showDepthMetrics, setShowDepthMetrics] = useState(false);
+  const [showBattery, setShowBattery] = useState(false);
+  const [showFoundObjects, setShowFoundObjects] = useState(false);
+  
+  // State for ranges of continuous variables
+  const [velocityRange, setVelocityRange] = useState({ min: 0, max: 0 });
+  const [batteryRange, setBatteryRange] = useState({ min: 0, max: 0 });
+  const [altimeterRange, setAltimeterRange] = useState({ min: 0, max: 0 });
+
+  // Color scales for discrete values
+  const modeColors = {
+    0: "#4CAF50", // Normal
+    1: "#FFC107", // Warning
+    2: "#F44336", // Error
+  };
+
+  // Function to get color for velocity magnitude
+  const getColorForVelocity = (velX, velY, velZ) => {
+    const magnitude = Math.sqrt(velX * velX + velY * velY + velZ * velZ);
+    const { min, max } = velocityRange;
+    const normalizedVel = (magnitude - min) / (max - min);
+    return `hsl(${200 + normalizedVel * 160}, 100%, 50%)`;
+  };
+
+  // Function to get color for battery level
+  const getColorForBattery = (volts) => {
+    const { min, max } = batteryRange;
+    const normalizedBattery = (volts - min) / (max - min);
+    return `hsl(${normalizedBattery * 120}, 100%, 50%)`; // Red to Green
+  };
+
+  // Function to get color for altimeter reading
+  const getColorForAltimeter = (alt) => {
+    const { min, max } = altimeterRange;
+    const normalizedAlt = (alt - min) / (max - min);
+    return `hsl(280, ${normalizedAlt * 100}%, 50%)`; // Purple gradient
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -49,6 +91,27 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
             row.longitude !== null &&
             row.depth !== null
         );
+
+        // Calculate ranges for continuous variables
+        const velocities = validData.map(row => 
+          Math.sqrt(row.velX * row.velX + row.velY * row.velY + row.velZ * row.velZ)
+        );
+        setVelocityRange({
+          min: Math.min(...velocities),
+          max: Math.max(...velocities)
+        });
+
+        const batteries = validData.map(row => row.battery_volts);
+        setBatteryRange({
+          min: Math.min(...batteries),
+          max: Math.max(...batteries)
+        });
+
+        const altitudes = validData.map(row => row.acousticAltimeter);
+        setAltimeterRange({
+          min: Math.min(...altitudes),
+          max: Math.max(...altitudes)
+        });
 
         console.log(`Parsed ${validData.length} valid data points`);
 
@@ -475,10 +538,46 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
           <div style={styles.header}>
             <div style={styles.buttonContainer}>
               <button 
-                style={styles.button} 
+                style={{...styles.button, backgroundColor: showIncidents ? "#3b82f6" : "#9ca3af"}} 
                 onClick={() => setShowIncidents(!showIncidents)}
               >
                 {showIncidents ? "Hide Incidents" : "Show Incidents"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showAttitudeIndicators ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowAttitudeIndicators(!showAttitudeIndicators)}
+              >
+                {showAttitudeIndicators ? "Hide Attitude" : "Show Attitude"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showVelocity ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowVelocity(!showVelocity)}
+              >
+                {showVelocity ? "Hide Velocity" : "Show Velocity"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showModes ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowModes(!showModes)}
+              >
+                {showModes ? "Hide Modes" : "Show Modes"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showDepthMetrics ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowDepthMetrics(!showDepthMetrics)}
+              >
+                {showDepthMetrics ? "Hide Depth Metrics" : "Show Depth Metrics"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showBattery ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowBattery(!showBattery)}
+              >
+                {showBattery ? "Hide Battery" : "Show Battery"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showFoundObjects ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowFoundObjects(!showFoundObjects)}
+              >
+                {showFoundObjects ? "Hide Found Objects" : "Show Found Objects"}
               </button>
             </div>
             <div style={styles.legendContainer}>
@@ -521,10 +620,29 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               strokeOpacity="0.8"
             />
 
-            {/* Draw actual path lines colored by depth */}
+            {/* Draw actual path lines with selected visualization */}
             {actualPoints.map((point, index) => {
               if (index === 0) return null;
               const prevPoint = actualPoints[index - 1];
+              const currentData = point.original;
+              const prevData = prevPoint.original;
+
+              let strokeColor = getColorForDepth(point.depth);
+              
+              if (showVelocity) {
+                strokeColor = getColorForVelocity(
+                  currentData.velX,
+                  currentData.velY,
+                  currentData.velZ
+                );
+              } else if (showBattery) {
+                strokeColor = getColorForBattery(currentData.battery_volts);
+              } else if (showDepthMetrics && currentData.acousticAltimeter) {
+                strokeColor = getColorForAltimeter(currentData.acousticAltimeter);
+              } else if (showModes) {
+                strokeColor = modeColors[currentData.navMode] || "#999";
+              }
+
               return (
                 <line
                   key={`line-${index}`}
@@ -532,7 +650,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                   y1={prevPoint.y}
                   x2={point.x}
                   y2={point.y}
-                  stroke={getColorForDepth(point.depth)}
+                  stroke={strokeColor}
                   strokeWidth="2"
                 />
               );
@@ -633,28 +751,23 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               </g>
             ))}
 
-            {/* Draw attitude indicators - show more frequently */}
-            {actualPoints.map((point, index) => {
+            {/* Draw attitude indicators every 10 points if enabled */}
+            {showAttitudeIndicators && actualPoints.map((point, index) => {
               const originalPoint = point.original;
-              // Show every 5th point instead of 10th
               if (
                 originalPoint.roll === undefined ||
                 originalPoint.pitch === undefined ||
-                index % 5 !== 0
+                index % 10 !== 0
               )
                 return null;
 
-              // Convert roll and pitch to radians
               const rollRad = (originalPoint.roll * Math.PI) / 180;
               const pitchRad = (originalPoint.pitch * Math.PI) / 180;
-
-              // Increase line length for better visibility
               const rollLength = 20;
               const pitchLength = 20;
 
               return (
                 <g key={`attitude-${index}`}>
-                  {/* Roll indicator */}
                   <line
                     x1={point.x}
                     y1={point.y}
@@ -664,7 +777,6 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                     strokeWidth="2"
                     strokeOpacity="0.7"
                   />
-                  {/* Pitch indicator */}
                   <line
                     x1={point.x}
                     y1={point.y}
@@ -678,145 +790,158 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               );
             })}
 
-            {/* Update legend to include attitude indicators */}
-            <g transform={`translate(${svgWidth - 150}, ${svgHeight - 100})`}>
-              <text x="0" y="0" fontSize="12" fill="#666">Attitude Indicators:</text>
-              <line x1="0" y1="15" x2="20" y2="15" stroke="orange" strokeWidth="2" strokeOpacity="0.7" />
-              <text x="25" y="20" fontSize="10" fill="#666">Roll</text>
-              <line x1="0" y1="35" x2="20" y2="35" stroke="green" strokeWidth="2" strokeOpacity="0.7" />
-              <text x="25" y="40" fontSize="10" fill="#666">Pitch</text>
-            </g>
+            {/* Draw found objects markers if enabled */}
+            {showFoundObjects && actualPoints.map((point, index) => {
+              const data = point.original;
+              if (!data.cotsNumFound && !data.cotsNumMaybe) return null;
 
-            {/* Show tooltip for hovered actual point */}
-            {hoveredPoint !== null &&
-              hoveredType === "actual" &&
-              actualPoints[hoveredPoint] && (
-                <g>
-                  <rect
-                    x={actualPoints[hoveredPoint].x + 10}
-                    y={actualPoints[hoveredPoint].y - 45}
-                    width="160"
-                    height="60"
-                    fill="rgba(0, 0, 0, 0.8)"
-                    rx="5"
-                  />
-                  <text
-                    x={actualPoints[hoveredPoint].x + 15}
-                    y={actualPoints[hoveredPoint].y - 30}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Depth: {actualPoints[hoveredPoint].depth.toFixed(2)}m
-                  </text>
-                  <text
-                    x={actualPoints[hoveredPoint].x + 15}
-                    y={actualPoints[hoveredPoint].y - 15}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Position:{" "}
-                    {actualPoints[hoveredPoint].original.latitude.toFixed(6)},{" "}
-                    {actualPoints[hoveredPoint].original.longitude.toFixed(6)}
-                  </text>
-                  <text
-                    x={actualPoints[hoveredPoint].x + 15}
-                    y={actualPoints[hoveredPoint].y}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Roll: {actualPoints[hoveredPoint].original.roll?.toFixed(2)}°
-                    Pitch: {actualPoints[hoveredPoint].original.pitch?.toFixed(2)}
-                    °
-                  </text>
+              return (
+                <g key={`found-${index}`}>
+                  {data.cotsNumFound > 0 && (
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="6"
+                      fill="#ff4081"
+                      fillOpacity="0.7"
+                      stroke="white"
+                      strokeWidth="1"
+                    />
+                  )}
+                  {data.cotsNumMaybe > 0 && (
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="4"
+                      fill="#ff9800"
+                      fillOpacity="0.7"
+                      stroke="white"
+                      strokeWidth="1"
+                    />
+                  )}
                 </g>
-              )}
+              );
+            })}
 
-            {/* Show tooltip for hovered planned point */}
-            {hoveredPoint !== null &&
-              hoveredType === "planned" &&
-              plannedPoints[hoveredPoint] && (
-                <g>
-                  <rect
-                    x={plannedPoints[hoveredPoint].x + 10}
-                    y={plannedPoints[hoveredPoint].y - 60}
-                    width="200"
-                    height="55"
-                    fill="rgba(0, 0, 0, 0.8)"
-                    rx="5"
-                  />
-                  <text
-                    x={plannedPoints[hoveredPoint].x + 15}
-                    y={plannedPoints[hoveredPoint].y - 40}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Waypoint:{" "}
-                    {plannedPoints[hoveredPoint].original.waypoint_number}
-                  </text>
-                  <text
-                    x={plannedPoints[hoveredPoint].x + 15}
-                    y={plannedPoints[hoveredPoint].y - 25}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Position:{" "}
-                    {plannedPoints[hoveredPoint].original.latitude.toFixed(6)},{" "}
-                    {plannedPoints[hoveredPoint].original.longitude.toFixed(6)}
-                  </text>
-                  <text
-                    x={plannedPoints[hoveredPoint].x + 15}
-                    y={plannedPoints[hoveredPoint].y - 10}
-                    fill="white"
-                    fontSize="12"
-                  >
-                    Type:{" "}
-                    {plannedPoints[hoveredPoint].original.additional_data?.transect_type || "N/A"}
-                  </text>
-                </g>
-              )}
-
-            {/* Show tooltip for hovered incident */}
-            {hoveredIncident !== null && incidentMarkers[hoveredIncident] && (
+            {/* Update tooltip content based on active visualizations */}
+            {hoveredPoint !== null && hoveredType === "actual" && actualPoints[hoveredPoint] && (
               <g>
                 <rect
-                  x={incidentMarkers[hoveredIncident].x + 10}
-                  y={incidentMarkers[hoveredIncident].y - 80}
-                  width="220"
-                  height={Math.min(
-                    80,
-                    25 +
-                      incidentMarkers[hoveredIncident].incident.allReasons
-                        .length *
-                        15
-                  )}
-                  fill="rgba(255, 0, 0, 0.8)"
+                  x={actualPoints[hoveredPoint].x + 10}
+                  y={actualPoints[hoveredPoint].y - 120}
+                  width="200"
+                  height="110"
+                  fill="rgba(0, 0, 0, 0.8)"
                   rx="5"
                 />
                 <text
-                  x={incidentMarkers[hoveredIncident].x + 15}
-                  y={incidentMarkers[hoveredIncident].y - 60}
+                  x={actualPoints[hoveredPoint].x + 15}
+                  y={actualPoints[hoveredPoint].y - 100}
                   fill="white"
                   fontSize="12"
-                  fontWeight="bold"
                 >
-                  INCIDENT ({incidentMarkers[hoveredIncident].incident.count}{" "}
-                  events)
+                  Depth: {actualPoints[hoveredPoint].depth.toFixed(2)}m
                 </text>
-                {incidentMarkers[hoveredIncident].incident.allReasons
-                  .slice(0, 3)
-                  .map((reason, i) => (
-                    <text
-                      key={`reason-${i}`}
-                      x={incidentMarkers[hoveredIncident].x + 15}
-                      y={incidentMarkers[hoveredIncident].y - 45 + i * 15}
-                      fill="white"
-                      fontSize="12"
-                    >
-                      • {reason}
-                    </text>
-                  ))}
+                {showVelocity && (
+                  <text
+                    x={actualPoints[hoveredPoint].x + 15}
+                    y={actualPoints[hoveredPoint].y - 85}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Velocity: {Math.sqrt(
+                      Math.pow(actualPoints[hoveredPoint].original.velX, 2) +
+                      Math.pow(actualPoints[hoveredPoint].original.velY, 2) +
+                      Math.pow(actualPoints[hoveredPoint].original.velZ, 2)
+                    ).toFixed(2)} m/s
+                  </text>
+                )}
+                {showModes && (
+                  <text
+                    x={actualPoints[hoveredPoint].x + 15}
+                    y={actualPoints[hoveredPoint].y - 70}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Mode: {actualPoints[hoveredPoint].original.navMode}
+                  </text>
+                )}
+                {showDepthMetrics && (
+                  <text
+                    x={actualPoints[hoveredPoint].x + 15}
+                    y={actualPoints[hoveredPoint].y - 55}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Altimeter: {actualPoints[hoveredPoint].original.acousticAltimeter?.toFixed(2)}m
+                  </text>
+                )}
+                {showBattery && (
+                  <text
+                    x={actualPoints[hoveredPoint].x + 15}
+                    y={actualPoints[hoveredPoint].y - 40}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Battery: {actualPoints[hoveredPoint].original.battery_volts?.toFixed(2)}V
+                  </text>
+                )}
+                {showFoundObjects && (
+                  <text
+                    x={actualPoints[hoveredPoint].x + 15}
+                    y={actualPoints[hoveredPoint].y - 25}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Found: {actualPoints[hoveredPoint].original.cotsNumFound || 0}
+                    Maybe: {actualPoints[hoveredPoint].original.cotsNumMaybe || 0}
+                  </text>
+                )}
               </g>
             )}
+
+            {/* Add dynamic legend based on active visualizations */}
+            <g transform={`translate(${svgWidth - 150}, 20)`}>
+              {showVelocity && (
+                <g>
+                  <text x="0" y="15" fontSize="12" fill="#666">Velocity (m/s):</text>
+                  <rect x="0" y="20" width="100" height="10" fill="url(#velocityGradient)" />
+                  <text x="0" y="45" fontSize="10" fill="#666">{velocityRange.min.toFixed(1)}</text>
+                  <text x="80" y="45" fontSize="10" fill="#666">{velocityRange.max.toFixed(1)}</text>
+                </g>
+              )}
+              {showBattery && (
+                <g transform="translate(0, 60)">
+                  <text x="0" y="15" fontSize="12" fill="#666">Battery (V):</text>
+                  <rect x="0" y="20" width="100" height="10" fill="url(#batteryGradient)" />
+                  <text x="0" y="45" fontSize="10" fill="#666">{batteryRange.min.toFixed(1)}</text>
+                  <text x="80" y="45" fontSize="10" fill="#666">{batteryRange.max.toFixed(1)}</text>
+                </g>
+              )}
+              {showModes && (
+                <g transform="translate(0, 120)">
+                  <text x="0" y="15" fontSize="12" fill="#666">Nav Modes:</text>
+                  {Object.entries(modeColors).map(([mode, color], i) => (
+                    <g key={mode} transform={`translate(0, ${20 + i * 20})`}>
+                      <rect x="0" y="0" width="10" height="10" fill={color} />
+                      <text x="15" y="9" fontSize="10" fill="#666">Mode {mode}</text>
+                    </g>
+                  ))}
+                </g>
+              )}
+            </g>
+
+            {/* Add gradients for continuous variables */}
+            <defs>
+              <linearGradient id="velocityGradient">
+                <stop offset="0%" stopColor="hsl(200, 100%, 50%)" />
+                <stop offset="100%" stopColor="hsl(360, 100%, 50%)" />
+              </linearGradient>
+              <linearGradient id="batteryGradient">
+                <stop offset="0%" stopColor="hsl(0, 100%, 50%)" />
+                <stop offset="100%" stopColor="hsl(120, 100%, 50%)" />
+              </linearGradient>
+            </defs>
           </svg>
 
           {/* Depth legend */}
