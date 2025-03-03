@@ -33,6 +33,13 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [batteryRange, setBatteryRange] = useState({ min: 0, max: 0 });
   const [altimeterRange, setAltimeterRange] = useState({ min: 0, max: 0 });
 
+  // New state variables for points visibility
+  const [showDepthPoints, setShowDepthPoints] = useState(false);
+  const [showVelocityPoints, setShowVelocityPoints] = useState(false);
+  const [showModePoints, setShowModePoints] = useState(false);
+  const [showBatteryPoints, setShowBatteryPoints] = useState(false);
+  const [showAltimeterPoints, setShowAltimeterPoints] = useState(false);
+
   // Color scales for discrete values
   const modeColors = {
     0: "#4CAF50", // Normal
@@ -579,6 +586,36 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               >
                 {showFoundObjects ? "Hide Found Objects" : "Show Found Objects"}
               </button>
+              <button 
+                style={{...styles.button, backgroundColor: showDepthPoints ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowDepthPoints(!showDepthPoints)}
+              >
+                {showDepthPoints ? "Hide Depth Points" : "Show Depth Points"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showVelocityPoints ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowVelocityPoints(!showVelocityPoints)}
+              >
+                {showVelocityPoints ? "Hide Velocity Points" : "Show Velocity Points"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showModePoints ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowModePoints(!showModePoints)}
+              >
+                {showModePoints ? "Hide Mode Points" : "Show Mode Points"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showBatteryPoints ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowBatteryPoints(!showBatteryPoints)}
+              >
+                {showBatteryPoints ? "Hide Battery Points" : "Show Battery Points"}
+              </button>
+              <button 
+                style={{...styles.button, backgroundColor: showAltimeterPoints ? "#3b82f6" : "#9ca3af"}} 
+                onClick={() => setShowAltimeterPoints(!showAltimeterPoints)}
+              >
+                {showAltimeterPoints ? "Hide Altimeter Points" : "Show Altimeter Points"}
+              </button>
             </div>
             <div style={styles.legendContainer}>
               <div style={styles.legendItem}>
@@ -656,13 +693,13 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               );
             })}
 
-            {/* Draw actual path points */}
-            {actualPoints.map((point, index) => (
+            {/* Draw points based on toggle state */}
+            {showDepthPoints && actualPoints.map((point, index) => (
               <circle
-                key={`actual-point-${index}`}
+                key={`depth-point-${index}`}
                 cx={point.x}
                 cy={point.y}
-                r="2"
+                r="3"
                 fill={getColorForDepth(point.depth)}
                 stroke={
                   hoveredPoint === index && hoveredType === "actual"
@@ -673,6 +710,34 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                 onMouseEnter={() => {
                   setHoveredPoint(index);
                   setHoveredType("actual");
+                }}
+                onMouseLeave={() => {
+                  setHoveredPoint(null);
+                  setHoveredType(null);
+                }}
+              />
+            ))}
+
+            {showVelocityPoints && actualPoints.map((point, index) => (
+              <circle
+                key={`velocity-point-${index}`}
+                cx={point.x}
+                cy={point.y}
+                r="3"
+                fill={getColorForVelocity(
+                  point.original.velX,
+                  point.original.velY,
+                  point.original.velZ
+                )}
+                stroke={
+                  hoveredPoint === index && hoveredType === "velocity"
+                    ? "#000"
+                    : "none"
+                }
+                strokeWidth="1"
+                onMouseEnter={() => {
+                  setHoveredPoint(index);
+                  setHoveredType("velocity");
                 }}
                 onMouseLeave={() => {
                   setHoveredPoint(null);
@@ -717,6 +782,47 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                 </text>
               </React.Fragment>
             ))}
+
+            {/* Show tooltip for hovered planned point */}
+            {hoveredPoint !== null &&
+              hoveredType === "planned" &&
+              plannedPoints[hoveredPoint] && (
+                <g>
+                  <rect
+                    x={plannedPoints[hoveredPoint].x + 10}
+                    y={plannedPoints[hoveredPoint].y - 60}
+                    width="200"
+                    height="55"
+                    fill="rgba(0, 0, 0, 0.8)"
+                    rx="5"
+                  />
+                  <text
+                    x={plannedPoints[hoveredPoint].x + 15}
+                    y={plannedPoints[hoveredPoint].y - 40}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Waypoint: {plannedPoints[hoveredPoint].original.waypoint_number}
+                  </text>
+                  <text
+                    x={plannedPoints[hoveredPoint].x + 15}
+                    y={plannedPoints[hoveredPoint].y - 25}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Position: {plannedPoints[hoveredPoint].original.latitude.toFixed(6)},
+                    {plannedPoints[hoveredPoint].original.longitude.toFixed(6)}
+                  </text>
+                  <text
+                    x={plannedPoints[hoveredPoint].x + 15}
+                    y={plannedPoints[hoveredPoint].y - 10}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Type: {plannedPoints[hoveredPoint].original.additional_data?.transect_type || "N/A"}
+                  </text>
+                </g>
+              )}
 
             {/* Draw incident markers if enabled */}
             {showIncidents && incidentMarkers.map((marker, index) => (
