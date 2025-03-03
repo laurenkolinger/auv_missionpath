@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Papa from "papaparse";
 import _ from "lodash";
 
@@ -385,7 +385,7 @@ const MissionPathWithIncidents = () => {
   const [actualData, setActualData] = useState([]);
   const [plannedData, setPlannedData] = useState([]);
   const [incidents, setIncidents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [depthRange, setDepthRange] = useState({ min: 0, max: 0 });
   const [viewBox, setViewBox] = useState({
@@ -395,106 +395,148 @@ const MissionPathWithIncidents = () => {
     maxLong: 0,
   });
   const [hoveredPoint, setHoveredPoint] = useState(null);
-  const [hoveredType, setHoveredType] = useState(null); // 'actual', 'planned', or 'incident'
+  const [hoveredType, setHoveredType] = useState(null);
   const [hoveredIncident, setHoveredIncident] = useState(null);
   const [showAttitude, setShowAttitude] = useState(false);
-  const [useSampleData, setUseSampleData] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [csvFileName, setCsvFileName] = useState("");
+  const [jsonFileName, setJsonFileName] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        console.log("Starting to load data...");
-
-        let missionData;
-        let validData;
-
-        if (useSampleData) {
-          console.log("Using sample data");
-          missionData = { waypoints: SAMPLE_WAYPOINTS };
-          validData = SAMPLE_PATH_DATA;
-        } else {
-          // Try to load actual mission path data
-          try {
-            console.log("Fetching CSV...");
-            const csvResponse = await fetch(
-              "/mission_travel_path_marden1_short.csv"
-            );
-            if (!csvResponse.ok) {
-              throw new Error(
-                `Failed to load CSV: ${csvResponse.status} ${csvResponse.statusText}`
-              );
-            }
-            const csvText = await csvResponse.text();
-            console.log("CSV loaded, length:", csvText.length);
-
-            // Parse CSV data
-            const parsedResults = Papa.parse(csvText, {
-              header: true,
-              dynamicTyping: true,
-              skipEmptyLines: true,
-            });
-
-            // Filter out any rows with null coordinates or depth
-            validData = parsedResults.data.filter(
-              (row) =>
-                row.latitude !== null &&
-                row.longitude !== null &&
-                row.depth !== null
-            );
-
-            console.log(`Parsed ${validData.length} valid data points`);
-          } catch (csvError) {
-            console.error("Error loading CSV:", csvError);
-            console.log("Falling back to sample path data");
-            validData = SAMPLE_PATH_DATA;
-          }
-
-          // Try to load planned mission data
-          try {
-            console.log("Fetching JSON...");
-            const jsonResponse = await fetch("/Marden1.json");
-            if (!jsonResponse.ok) {
-              throw new Error(
-                `Failed to load JSON: ${jsonResponse.status} ${jsonResponse.statusText}`
-              );
-            }
-            missionData = await jsonResponse.json();
-            console.log(
-              "JSON loaded:",
-              missionData.mission_summary?.mission_name
-            );
-          } catch (jsonError) {
-            console.error("Error loading JSON:", jsonError);
-            console.log("Falling back to sample waypoint data");
-            missionData = { waypoints: SAMPLE_WAYPOINTS };
-          }
+  // Function to detect file type based on content
+  const detectFileType = useCallback((fileContent) => {
+    try {
+      // Try to parse as JSON
+      const jsonData = JSON.parse(fileContent);
+      if (jsonData.waypoints && Array.isArray(jsonData.waypoints)) {
+        return 'json';
+      }
+    } catch (e) {
+      // If JSON parse fails, try CSV
+      const csvLines = fileContent.split('\n');
+      if (csvLines.length > 1) {
+        const headers = csvLines[0].toLowerCase();
+        // Check for typical CSV headers we expect
+        if (headers.includes('latitude') && 
+            headers.includes('longitude') && 
+            headers.includes('depth')) {
+          return 'csv';
         }
+      }
+    }
+    return null;
+  }, []);
 
-        // Set planned data
-        setPlannedData(missionData.waypoints);
+  // Combined file handler for both drop and select
+  const handleFiles = useCallback((files) => {
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target.result;
+        const fileType = detectFileType(content);
 
-        // Sample the data to avoid rendering too many points if it's large
-        const sampleRate = Math.ceil(validData.length / 2000);
-        const sampledData = validData.filter(
-          (_, index) => index % sampleRate === 0
-        );
+        if (fileType === 'json') {
+          try {
+            const missionData = JSON.parse(content);
+            if (!missionData.waypoints || !Array.isArray(missionData.waypoints)) {
+              setError("Invalid mission file format: missing waypoints array");
+              return;
+            }
+            const validWaypoints = missionData.waypoints.every(wp => 
+              wp.latitude !== undefined && 
+              wp.longitude !== undefined && 
+              wp.waypoint_number !== undefined
+            );
+            if (!validWaypoints) {
+              setError("Invalid waypoint data: missing required fields");
+              return;
+            }
+            setJsonFileName(file.name);
+            processData(actualData, missionData.waypoints);
+          } catch (error) {
+            setError("Error parsing mission file: " + error.message);
+          }
+        } else if (fileType === 'csv') {
+          const parsedResults = Papa.parse(content, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+          });
+          const validData = parsedResults.data.filter(
+            (row) =>
+              row.latitude !== null &&
+              row.longitude !== null &&
+              row.depth !== null
+          );
+          if (validData.length === 0) {
+            setError("No valid data points found in path file");
+            return;
+          }
+          setCsvFileName(file.name);
+          processData(validData, plannedData);
+        } else {
+          setError(`Could not determine file type for ${file.name}. Please ensure it's a valid mission JSON or path CSV file.`);
+        }
+      };
+      reader.readAsText(file);
+    });
+  }, [actualData, plannedData, processData, detectFileType]);
 
-        // Calculate depth range for color mapping
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const { files } = e.dataTransfer;
+    handleFiles(files);
+  }, [handleFiles]);
+
+  // Function to process data when either file is uploaded
+  const processData = (newActualData, newPlannedData) => {
+    try {
+      setLoading(true);
+
+      // Sample the data to avoid rendering too many points if it's large
+      const sampleRate = Math.ceil(newActualData.length / 2000);
+      const sampledData = newActualData.filter(
+        (_, index) => index % sampleRate === 0
+      );
+
+      // Calculate depth range for color mapping
+      if (sampledData.length > 0) {
         const depthValues = sampledData.map((row) => row.depth);
         const minDepth = Math.min(...depthValues);
         const maxDepth = Math.max(...depthValues);
         setDepthRange({ min: minDepth, max: maxDepth });
+      }
 
-        // Detect incidents
-        const detectedIncidents = detectIncidents(validData);
-        setIncidents(detectedIncidents);
+      // Detect incidents
+      const detectedIncidents = detectIncidents(newActualData);
+      setIncidents(detectedIncidents);
 
-        // Calculate the geographic bounds
+      // Calculate the geographic bounds
+      if (sampledData.length > 0 && newPlannedData.length > 0) {
         const actualLats = sampledData.map((row) => row.latitude);
         const actualLongs = sampledData.map((row) => row.longitude);
-        const plannedLats = missionData.waypoints.map((wp) => wp.latitude);
-        const plannedLongs = missionData.waypoints.map((wp) => wp.longitude);
+        const plannedLats = newPlannedData.map((wp) => wp.latitude);
+        const plannedLongs = newPlannedData.map((wp) => wp.longitude);
 
         const allLats = [...actualLats, ...plannedLats];
         const allLongs = [...actualLongs, ...plannedLongs];
@@ -514,18 +556,19 @@ const MissionPathWithIncidents = () => {
           minLong: minLong - longPadding,
           maxLong: maxLong + longPadding,
         });
-
-        setActualData(sampledData);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error in loadData:", err);
-        setError(`Error loading or processing data: ${err.message}`);
-        setLoading(false);
       }
-    };
 
-    loadData();
-  }, [useSampleData]);
+      setActualData(sampledData);
+      setPlannedData(newPlannedData);
+      setDataLoaded(true);
+      setLoading(false);
+      setError(null);
+    } catch (err) {
+      console.error("Error processing data:", err);
+      setError(`Error processing data: ${err.message}`);
+      setLoading(false);
+    }
+  };
 
   // Function to detect incidents in the data
   const detectIncidents = (data) => {
@@ -681,676 +724,816 @@ const MissionPathWithIncidents = () => {
     setShowAttitude(!showAttitude);
   };
 
-  // Toggle between sample and real data
-  const toggleDataSource = () => {
-    setUseSampleData(!useSampleData);
-  };
-
-  if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "300px",
-          gap: "20px",
-        }}
-      >
-        <div>Loading mission data...</div>
-        <button
-          onClick={toggleDataSource}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#4285f4",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Use {useSampleData ? "Real" : "Sample"} Data
-        </button>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div
-        style={{
-          padding: "16px",
-          color: "#d32f2f",
-          display: "flex",
-          flexDirection: "column",
-          gap: "20px",
-        }}
-      >
-        <div>{error}</div>
-        <button
-          onClick={toggleDataSource}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#4285f4",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            alignSelf: "flex-start",
-          }}
-        >
-          Use {useSampleData ? "Real" : "Sample"} Data
-        </button>
-      </div>
-    );
-  }
-
-  const svgWidth = 800;
-  const svgHeight = 600;
-
-  // Create the actual path points
-  const actualPoints = actualData.map((point, index) => {
-    const { x, y } = mapToSVG(
-      point.latitude,
-      point.longitude,
-      svgWidth,
-      svgHeight
-    );
-    return { x, y, depth: point.depth, original: point, index };
-  });
-
-  // Create the planned path points
-  const plannedPoints = plannedData.map((point, index) => {
-    const { x, y } = mapToSVG(
-      point.latitude,
-      point.longitude,
-      svgWidth,
-      svgHeight
-    );
-    return { x, y, original: point, index };
-  });
-
-  // Create the incident markers
-  const incidentMarkers = incidents.map((incident, index) => {
-    const { x, y } = mapToSVG(
-      incident.latitude,
-      incident.longitude,
-      svgWidth,
-      svgHeight
-    );
-    return { x, y, incident, index };
-  });
-
-  // Define some inline styles (for compatibility)
-  const styles = {
-    container: {
+  return (
+    <div style={{
       display: "flex",
       flexDirection: "column",
-      alignItems: "center",
-      padding: "16px",
-    },
-    title: {
-      fontSize: "1.25rem",
-      fontWeight: "bold",
-      marginBottom: "16px",
-    },
-    card: {
-      backgroundColor: "white",
-      padding: "16px",
-      borderRadius: "8px",
-      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      width: "100%",
-    },
-    header: {
-      display: "flex",
-      justifyContent: "space-between",
-      marginBottom: "16px",
-    },
-    buttonContainer: {
-      display: "flex",
-      gap: "8px",
-    },
-    button: {
-      backgroundColor: "#3b82f6",
-      color: "white",
-      fontWeight: "bold",
-      padding: "4px 8px",
-      borderRadius: "4px",
-      fontSize: "0.875rem",
-      border: "none",
-      cursor: "pointer",
-    },
-    legendContainer: {
-      display: "flex",
-      gap: "16px",
-    },
-    legendItem: {
-      display: "flex",
-      alignItems: "center",
-    },
-    legendDot: {
-      width: "16px",
-      height: "16px",
-      borderRadius: "50%",
-      marginRight: "8px",
-    },
-    legendLine: {
-      width: "16px",
-      height: "0",
-      borderTop: "2px dashed purple",
-      marginRight: "8px",
-    },
-    svgContainer: {
-      backgroundColor: "#f9fafb",
-      width: "100%",
-      height: svgHeight,
-    },
-    depthLegend: {
-      marginTop: "16px",
-    },
-    legendTitle: {
-      fontSize: "1.125rem",
-      fontWeight: "600",
-      marginBottom: "8px",
-    },
-    depthBar: {
-      display: "flex",
-      alignItems: "center",
-      width: "100%",
-      height: "32px",
-      background: "linear-gradient(to right, #dbeafe, #1e3a8a)",
-      borderRadius: "4px",
-    },
-    depthLabels: {
-      display: "flex",
-      justifyContent: "space-between",
-      marginTop: "4px",
-    },
-    statsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
-      gap: "16px",
-      marginTop: "24px",
-      fontSize: "0.875rem",
-    },
-    statsCard: (color) => ({
-      padding: "12px",
-      borderRadius: "4px",
-      backgroundColor: color,
-    }),
-    statsTitle: {
-      fontWeight: "bold",
-      marginBottom: "8px",
-    },
-    incidentTable: {
-      marginTop: "16px",
-      backgroundColor: "#f9fafb",
-      padding: "12px",
-      borderRadius: "4px",
-    },
-    table: {
-      width: "100%",
-      fontSize: "0.75rem",
-      borderCollapse: "collapse",
-    },
-    tableHead: {
-      textAlign: "left",
-      padding: "4px",
-    },
-    tableRow: (isEven) => ({
-      backgroundColor: isEven ? "#f3f4f6" : "transparent",
-    }),
-    tableCell: {
-      padding: "4px",
-    },
-    footer: {
-      marginTop: "16px",
-      fontSize: "0.75rem",
-      color: "#6b7280",
-    },
-  };
-
-  return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>
-        Mission Path with Incidents and Planned Route
+      gap: "20px",
+      padding: "20px",
+      maxWidth: "1200px",
+      margin: "0 auto"
+    }}>
+      <h2 style={{
+        fontSize: "24px",
+        fontWeight: "bold",
+        textAlign: "center",
+        marginBottom: "20px"
+      }}>
+        Mission Path Visualization
       </h2>
 
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <div style={styles.buttonContainer}>
-            <button style={styles.button} onClick={toggleAttitude}>
-              {showAttitude ? "Hide Attitude" : "Show Attitude"}
-            </button>
-            <button style={styles.button} onClick={toggleDataSource}>
-              Using {useSampleData ? "Sample" : "Loaded"} Data
-            </button>
+      {/* File Upload Section - Always Visible */}
+      <div style={{
+        padding: "20px",
+        backgroundColor: isDragging ? "#e2e8f0" : "#f8fafc",
+        borderRadius: "8px",
+        border: `2px dashed ${isDragging ? "#3b82f6" : "#cbd5e1"}`,
+        transition: "all 0.2s ease",
+        marginBottom: "20px"
+      }}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}>
+        <div style={{
+          textAlign: "center",
+          marginBottom: "20px"
+        }}>
+          <h3 style={{
+            fontSize: "18px",
+            fontWeight: "600",
+            marginBottom: "8px"
+          }}>
+            Upload Mission Files
+          </h3>
+          <p style={{
+            color: "#64748b",
+            marginBottom: "16px"
+          }}>
+            Drop your files here or click to upload
+          </p>
+        </div>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "20px",
+          marginBottom: "20px"
+        }}>
+          {/* CSV Upload Box */}
+          <div style={{
+            padding: "20px",
+            backgroundColor: "white",
+            borderRadius: "8px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "1px solid #e2e8f0"
+          }}>
+            <h4 style={{
+              fontSize: "16px",
+              fontWeight: "600",
+              marginBottom: "12px"
+            }}>
+              Mission Path (CSV)
+            </h4>
+            <p style={{
+              fontSize: "14px",
+              color: "#64748b",
+              marginBottom: "12px"
+            }}>
+              Required: latitude, longitude, depth, timestamp_ros
+            </p>
+            <input
+              type="file"
+              accept=".csv,.txt"
+              onChange={(e) => handleFiles(e.target.files)}
+              style={{
+                width: "100%",
+                padding: "8px",
+                border: "1px solid #e2e8f0",
+                borderRadius: "4px"
+              }}
+            />
+            {csvFileName && (
+              <div style={{
+                marginTop: "8px",
+                color: "#059669",
+                fontSize: "14px"
+              }}>
+                ✓ Loaded: {csvFileName}
+              </div>
+            )}
           </div>
-          <div style={styles.legendContainer}>
-            <div style={styles.legendItem}>
-              <div
-                style={{ ...styles.legendDot, backgroundColor: "#3b82f6" }}
-              ></div>
-              <span>Actual Path</span>
-            </div>
-            <div style={styles.legendItem}>
-              <div style={styles.legendLine}></div>
-              <span>Planned Route</span>
-            </div>
-            <div style={styles.legendItem}>
-              <div
-                style={{ ...styles.legendDot, backgroundColor: "#ef4444" }}
-              ></div>
-              <span>Incidents ({incidents.length})</span>
-            </div>
+
+          {/* JSON Upload Box */}
+          <div style={{
+            padding: "20px",
+            backgroundColor: "white",
+            borderRadius: "8px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "1px solid #e2e8f0"
+          }}>
+            <h4 style={{
+              fontSize: "16px",
+              fontWeight: "600",
+              marginBottom: "12px"
+            }}>
+              Mission File (JSON)
+            </h4>
+            <p style={{
+              fontSize: "14px",
+              color: "#64748b",
+              marginBottom: "12px"
+            }}>
+              Must contain waypoints array with coordinates
+            </p>
+            <input
+              type="file"
+              accept=".json"
+              onChange={(e) => handleFiles(e.target.files)}
+              style={{
+                width: "100%",
+                padding: "8px",
+                border: "1px solid #e2e8f0",
+                borderRadius: "4px"
+              }}
+            />
+            {jsonFileName && (
+              <div style={{
+                marginTop: "8px",
+                color: "#059669",
+                fontSize: "14px"
+              }}>
+                ✓ Loaded: {jsonFileName}
+              </div>
+            )}
           </div>
         </div>
 
-        <svg
-          width="100%"
-          height={svgHeight}
-          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          style={styles.svgContainer}
-        >
-          {/* Draw planned path as dotted line */}
-          <path
-            d={plannedPoints
-              .map((point, i) => `${i === 0 ? "M" : "L"} ${point.x},${point.y}`)
-              .join(" ")}
-            fill="none"
-            stroke="purple"
-            strokeWidth="2"
-            strokeDasharray="5,5"
-            strokeOpacity="0.8"
-          />
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px"
+        }}>
+          <button
+            style={{
+              backgroundColor: "#dc2626",
+              color: "white",
+              padding: "8px 16px",
+              borderRadius: "4px",
+              border: "none",
+              cursor: "pointer",
+              opacity: (!csvFileName && !jsonFileName) ? "0.5" : "1",
+              transition: "opacity 0.2s ease"
+            }}
+            onClick={() => {
+              setActualData([]);
+              setPlannedData([]);
+              setCsvFileName("");
+              setJsonFileName("");
+              setDataLoaded(false);
+              setError(null);
+            }}
+            disabled={!csvFileName && !jsonFileName}
+          >
+            Clear Files
+          </button>
+        </div>
+      </div>
 
-          {/* Draw actual path lines colored by depth */}
-          {actualPoints.map((point, index) => {
-            if (index === 0) return null;
-            const prevPoint = actualPoints[index - 1];
-            return (
-              <line
-                key={`line-${index}`}
-                x1={prevPoint.x}
-                y1={prevPoint.y}
-                x2={point.x}
-                y2={point.y}
-                stroke={getColorForDepth(point.depth)}
-                strokeWidth="2"
-              />
-            );
-          })}
+      {/* Error Display */}
+      {error && (
+        <div style={{
+          padding: "12px",
+          backgroundColor: "#fee2e2",
+          color: "#dc2626",
+          borderRadius: "4px",
+          marginBottom: "16px"
+        }}>
+          {error}
+        </div>
+      )}
 
-          {/* Draw actual path points */}
-          {actualPoints.map((point, index) => (
-            <circle
-              key={`actual-point-${index}`}
-              cx={point.x}
-              cy={point.y}
-              r="2"
-              fill={getColorForDepth(point.depth)}
-              stroke={
-                hoveredPoint === index && hoveredType === "actual"
-                  ? "#000"
-                  : "none"
-              }
-              strokeWidth="1"
-              onMouseEnter={() => {
-                setHoveredPoint(index);
-                setHoveredType("actual");
-              }}
-              onMouseLeave={() => {
-                setHoveredPoint(null);
-                setHoveredType(null);
-              }}
-            />
-          ))}
+      {/* Loading State */}
+      {loading && (
+        <div style={{
+          textAlign: "center",
+          padding: "20px"
+        }}>
+          Loading mission data...
+        </div>
+      )}
 
-          {/* Draw planned waypoints */}
-          {plannedPoints.map((point, index) => (
-            <React.Fragment key={`planned-waypoint-${index}`}>
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r="4"
-                fill="purple"
-                fillOpacity="0.6"
-                stroke={
-                  hoveredPoint === index && hoveredType === "planned"
-                    ? "#000"
-                    : "none"
-                }
-                strokeWidth="1"
-                onMouseEnter={() => {
-                  setHoveredPoint(index);
-                  setHoveredType("planned");
-                }}
-                onMouseLeave={() => {
-                  setHoveredPoint(null);
-                  setHoveredType(null);
-                }}
-              />
-              <text
-                x={point.x + 5}
-                y={point.y - 5}
-                fontSize="10"
-                fill="purple"
-                fontWeight="bold"
-                opacity="0.8"
-              >
-                {index + 1}
-              </text>
-            </React.Fragment>
-          ))}
+      {/* Rest of your existing visualization code */}
+      {dataLoaded && !loading && (
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+          padding: "20px",
+          maxWidth: "1200px",
+          margin: "0 auto"
+        }}>
+          <h2 style={{
+            fontSize: "24px",
+            fontWeight: "bold",
+            textAlign: "center",
+            marginBottom: "20px"
+          }}>
+            Mission Path with Incidents and Planned Route
+          </h2>
 
-          {/* Draw incident markers */}
-          {incidentMarkers.map((marker, index) => (
-            <g
-              key={`incident-${index}`}
-              onMouseEnter={() => {
-                setHoveredIncident(index);
-              }}
-              onMouseLeave={() => {
-                setHoveredIncident(null);
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "20px",
+            padding: "20px",
+            maxWidth: "1200px",
+            margin: "0 auto"
+          }}>
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "16px",
+            }}>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+                marginBottom: "16px"
+              }}>
+                <div style={{
+                  display: "flex",
+                  gap: "8px",
+                }}>
+                  <button
+                    style={{
+                      backgroundColor: "#3b82f6",
+                      color: "white",
+                      fontWeight: "bold",
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                    onClick={toggleAttitude}
+                  >
+                    {showAttitude ? "Hide Attitude" : "Show Attitude"}
+                  </button>
+                </div>
+                <div style={{
+                  display: "flex",
+                  gap: "16px",
+                }}>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                  }}>
+                    <div
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        backgroundColor: "#3b82f6",
+                        marginRight: "8px"
+                      }}
+                    ></div>
+                    <span>Actual Path</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                  }}>
+                    <div style={{
+                      width: "16px",
+                      height: "0",
+                      borderTop: "2px dashed purple",
+                      marginRight: "8px"
+                    }}></div>
+                    <span>Planned Route</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                  }}>
+                    <div
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        backgroundColor: "#ef4444",
+                        marginRight: "8px"
+                      }}
+                    ></div>
+                    <span>Incidents ({incidents.length})</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <svg
+              width="100%"
+              height={600}
+              viewBox={`0 0 800 600`}
+              style={{
+                backgroundColor: "#f9fafb",
+                width: "100%",
+                height: "600px",
               }}
             >
-              <circle
-                cx={marker.x}
-                cy={marker.y}
-                r="8"
-                fill="red"
-                fillOpacity="0.7"
-                stroke="white"
-                strokeWidth="1"
+              {/* Draw planned path as dotted line */}
+              <path
+                d={plannedData
+                  .map((point, i) => `${i === 0 ? "M" : "L"} ${point.x},${point.y}`)
+                  .join(" ")}
+                fill="none"
+                stroke="purple"
+                strokeWidth="2"
+                strokeDasharray="5,5"
+                strokeOpacity="0.8"
               />
-              <text
-                x={marker.x}
-                y={marker.y + 4}
-                fontSize="10"
-                fill="white"
-                textAnchor="middle"
-                fontWeight="bold"
-              >
-                {marker.incident.count > 9 ? "!" : marker.incident.count}
-              </text>
-            </g>
-          ))}
 
-          {/* Show attitude indicators if enabled */}
-          {showAttitude &&
-            actualPoints
-              .filter((_, i) => i % 20 === 0)
-              .map((point, index) => {
-                const originalPoint = point.original;
-                // Only show if we have valid attitude data
-                if (
-                  originalPoint.roll === undefined ||
-                  originalPoint.pitch === undefined
-                )
-                  return null;
-
-                // Convert roll and pitch to radians
-                const rollRad = (originalPoint.roll * Math.PI) / 180;
-                const pitchRad = (originalPoint.pitch * Math.PI) / 180;
-
-                // Calculate line endpoints for roll and pitch indicators
-                const rollLength = 10;
-                const pitchLength = 10;
-
+              {/* Draw actual path lines colored by depth */}
+              {actualData.map((point, index) => {
+                if (index === 0) return null;
+                const prevPoint = actualData[index - 1];
                 return (
-                  <g key={`attitude-${index}`}>
-                    {/* Roll indicator */}
-                    <line
-                      x1={point.x}
-                      y1={point.y}
-                      x2={point.x + rollLength * Math.sin(rollRad)}
-                      y2={point.y + rollLength * Math.cos(rollRad)}
-                      stroke="orange"
-                      strokeWidth="1"
-                    />
-                    {/* Pitch indicator */}
-                    <line
-                      x1={point.x}
-                      y1={point.y}
-                      x2={point.x + pitchLength * Math.sin(pitchRad)}
-                      y2={point.y - pitchLength * Math.cos(pitchRad)}
-                      stroke="green"
-                      strokeWidth="1"
-                    />
-                  </g>
+                  <line
+                    key={`line-${index}`}
+                    x1={prevPoint.x}
+                    y1={prevPoint.y}
+                    x2={point.x}
+                    y2={point.y}
+                    stroke={getColorForDepth(point.depth)}
+                    strokeWidth="2"
+                  />
                 );
               })}
 
-          {/* Show tooltip for hovered actual point */}
-          {hoveredPoint !== null &&
-            hoveredType === "actual" &&
-            actualPoints[hoveredPoint] && (
-              <g>
-                <rect
-                  x={actualPoints[hoveredPoint].x + 10}
-                  y={actualPoints[hoveredPoint].y - 45}
-                  width="160"
-                  height="60"
-                  fill="rgba(0, 0, 0, 0.8)"
-                  rx="5"
-                />
-                <text
-                  x={actualPoints[hoveredPoint].x + 15}
-                  y={actualPoints[hoveredPoint].y - 30}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Depth: {actualPoints[hoveredPoint].depth.toFixed(2)}m
-                </text>
-                <text
-                  x={actualPoints[hoveredPoint].x + 15}
-                  y={actualPoints[hoveredPoint].y - 15}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Position:{" "}
-                  {actualPoints[hoveredPoint].original.latitude.toFixed(6)},{" "}
-                  {actualPoints[hoveredPoint].original.longitude.toFixed(6)}
-                </text>
-                <text
-                  x={actualPoints[hoveredPoint].x + 15}
-                  y={actualPoints[hoveredPoint].y}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Roll: {actualPoints[hoveredPoint].original.roll?.toFixed(2)}°
-                  Pitch: {actualPoints[hoveredPoint].original.pitch?.toFixed(2)}
-                  °
-                </text>
-              </g>
-            )}
-
-          {/* Show tooltip for hovered planned point */}
-          {hoveredPoint !== null &&
-            hoveredType === "planned" &&
-            plannedPoints[hoveredPoint] && (
-              <g>
-                <rect
-                  x={plannedPoints[hoveredPoint].x + 10}
-                  y={plannedPoints[hoveredPoint].y - 60}
-                  width="200"
-                  height="55"
-                  fill="rgba(0, 0, 0, 0.8)"
-                  rx="5"
-                />
-                <text
-                  x={plannedPoints[hoveredPoint].x + 15}
-                  y={plannedPoints[hoveredPoint].y - 40}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Waypoint:{" "}
-                  {plannedPoints[hoveredPoint].original.waypoint_number}
-                </text>
-                <text
-                  x={plannedPoints[hoveredPoint].x + 15}
-                  y={plannedPoints[hoveredPoint].y - 25}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Position:{" "}
-                  {plannedPoints[hoveredPoint].original.latitude.toFixed(6)},{" "}
-                  {plannedPoints[hoveredPoint].original.longitude.toFixed(6)}
-                </text>
-                <text
-                  x={plannedPoints[hoveredPoint].x + 15}
-                  y={plannedPoints[hoveredPoint].y - 10}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Type:{" "}
-                  {
-                    plannedPoints[hoveredPoint].original.additional_data
-                      .transect_type
+              {/* Draw actual path points */}
+              {actualData.map((point, index) => (
+                <circle
+                  key={`actual-point-${index}`}
+                  cx={point.x}
+                  cy={point.y}
+                  r="2"
+                  fill={getColorForDepth(point.depth)}
+                  stroke={
+                    hoveredPoint === index && hoveredType === "actual"
+                      ? "#000"
+                      : "none"
                   }
-                </text>
-              </g>
-            )}
+                  strokeWidth="1"
+                  onMouseEnter={() => {
+                    setHoveredPoint(index);
+                    setHoveredType("actual");
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredPoint(null);
+                    setHoveredType(null);
+                  }}
+                />
+              ))}
 
-          {/* Show tooltip for hovered incident */}
-          {hoveredIncident !== null && incidentMarkers[hoveredIncident] && (
-            <g>
-              <rect
-                x={incidentMarkers[hoveredIncident].x + 10}
-                y={incidentMarkers[hoveredIncident].y - 80}
-                width="220"
-                height={Math.min(
-                  80,
-                  25 +
-                    incidentMarkers[hoveredIncident].incident.allReasons
-                      .length *
-                      15
-                )}
-                fill="rgba(255, 0, 0, 0.8)"
-                rx="5"
-              />
-              <text
-                x={incidentMarkers[hoveredIncident].x + 15}
-                y={incidentMarkers[hoveredIncident].y - 60}
-                fill="white"
-                fontSize="12"
-                fontWeight="bold"
-              >
-                INCIDENT ({incidentMarkers[hoveredIncident].incident.count}{" "}
-                events)
-              </text>
-              {incidentMarkers[hoveredIncident].incident.allReasons
-                .slice(0, 3)
-                .map((reason, i) => (
+              {/* Draw planned waypoints */}
+              {plannedData.map((point, index) => (
+                <React.Fragment key={`planned-waypoint-${index}`}>
+                  <circle
+                    cx={point.x}
+                    cy={point.y}
+                    r="4"
+                    fill="purple"
+                    fillOpacity="0.6"
+                    stroke={
+                      hoveredPoint === index && hoveredType === "planned"
+                        ? "#000"
+                        : "none"
+                    }
+                    strokeWidth="1"
+                    onMouseEnter={() => {
+                      setHoveredPoint(index);
+                      setHoveredType("planned");
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredPoint(null);
+                      setHoveredType(null);
+                    }}
+                  />
                   <text
-                    key={`reason-${i}`}
-                    x={incidentMarkers[hoveredIncident].x + 15}
-                    y={incidentMarkers[hoveredIncident].y - 45 + i * 15}
+                    x={point.x + 5}
+                    y={point.y - 5}
+                    fontSize="10"
+                    fill="purple"
+                    fontWeight="bold"
+                    opacity="0.8"
+                  >
+                    {index + 1}
+                  </text>
+                </React.Fragment>
+              ))}
+
+              {/* Draw incident markers */}
+              {incidents.map((incident, index) => (
+                <g
+                  key={`incident-${index}`}
+                  onMouseEnter={() => {
+                    setHoveredIncident(index);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredIncident(null);
+                  }}
+                >
+                  <circle
+                    cx={incident.x}
+                    cy={incident.y}
+                    r="8"
+                    fill="red"
+                    fillOpacity="0.7"
+                    stroke="white"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={incident.x}
+                    y={incident.y + 4}
+                    fontSize="10"
+                    fill="white"
+                    textAnchor="middle"
+                    fontWeight="bold"
+                  >
+                    {incident.count > 9 ? "!" : incident.count}
+                  </text>
+                </g>
+              ))}
+
+              {/* Show attitude indicators if enabled */}
+              {showAttitude &&
+                actualData
+                  .filter((_, i) => i % 20 === 0)
+                  .map((point, index) => {
+                    const originalPoint = point;
+                    // Only show if we have valid attitude data
+                    if (
+                      originalPoint.roll === undefined ||
+                      originalPoint.pitch === undefined
+                    )
+                      return null;
+
+                    // Convert roll and pitch to radians
+                    const rollRad = (originalPoint.roll * Math.PI) / 180;
+                    const pitchRad = (originalPoint.pitch * Math.PI) / 180;
+
+                    // Calculate line endpoints for roll and pitch indicators
+                    const rollLength = 10;
+                    const pitchLength = 10;
+
+                    return (
+                      <g key={`attitude-${index}`}>
+                        {/* Roll indicator */}
+                        <line
+                          x1={point.x}
+                          y1={point.y}
+                          x2={point.x + rollLength * Math.sin(rollRad)}
+                          y2={point.y + rollLength * Math.cos(rollRad)}
+                          stroke="orange"
+                          strokeWidth="1"
+                        />
+                        {/* Pitch indicator */}
+                        <line
+                          x1={point.x}
+                          y1={point.y}
+                          x2={point.x + pitchLength * Math.sin(pitchRad)}
+                          y2={point.y - pitchLength * Math.cos(pitchRad)}
+                          stroke="green"
+                          strokeWidth="1"
+                        />
+                      </g>
+                    );
+                  })}
+
+              {/* Show tooltip for hovered actual point */}
+              {hoveredPoint !== null &&
+                hoveredType === "actual" &&
+                actualData[hoveredPoint] && (
+                  <g>
+                    <rect
+                      x={actualData[hoveredPoint].x + 10}
+                      y={actualData[hoveredPoint].y - 45}
+                      width="160"
+                      height="60"
+                      fill="rgba(0, 0, 0, 0.8)"
+                      rx="5"
+                    />
+                    <text
+                      x={actualData[hoveredPoint].x + 15}
+                      y={actualData[hoveredPoint].y - 30}
+                      fill="white"
+                      fontSize="12"
+                    >
+                      Depth: {actualData[hoveredPoint].depth.toFixed(2)}m
+                    </text>
+                    <text
+                      x={actualData[hoveredPoint].x + 15}
+                      y={actualData[hoveredPoint].y - 15}
+                      fill="white"
+                      fontSize="12"
+                    >
+                      Position:{" "}
+                      {actualData[hoveredPoint].latitude.toFixed(6)},{" "}
+                      {actualData[hoveredPoint].longitude.toFixed(6)}
+                    </text>
+                    <text
+                      x={actualData[hoveredPoint].x + 15}
+                      y={actualData[hoveredPoint].y}
+                      fill="white"
+                      fontSize="12"
+                    >
+                      Roll: {actualData[hoveredPoint].roll?.toFixed(2)}°
+                      Pitch: {actualData[hoveredPoint].pitch?.toFixed(2)}
+                      °
+                    </text>
+                  </g>
+                )}
+
+              {/* Show tooltip for hovered planned point */}
+              {hoveredPoint !== null &&
+                hoveredType === "planned" &&
+                plannedData[hoveredPoint] && (
+                  <g>
+                    <rect
+                      x={plannedData[hoveredPoint].x + 10}
+                      y={plannedData[hoveredPoint].y - 60}
+                      width="200"
+                      height="55"
+                      fill="rgba(0, 0, 0, 0.8)"
+                      rx="5"
+                    />
+                    <text
+                      x={plannedData[hoveredPoint].x + 15}
+                      y={plannedData[hoveredPoint].y - 40}
+                      fill="white"
+                      fontSize="12"
+                    >
+                      Waypoint:{" "}
+                      {plannedData[hoveredPoint].waypoint_number}
+                    </text>
+                    <text
+                      x={plannedData[hoveredPoint].x + 15}
+                      y={plannedData[hoveredPoint].y - 25}
+                      fill="white"
+                      fontSize="12"
+                    >
+                      Position:{" "}
+                      {plannedData[hoveredPoint].latitude.toFixed(6)},{" "}
+                      {plannedData[hoveredPoint].longitude.toFixed(6)}
+                    </text>
+                    <text
+                      x={plannedData[hoveredPoint].x + 15}
+                      y={plannedData[hoveredPoint].y - 10}
+                      fill="white"
+                      fontSize="12"
+                    >
+                      Type:{" "}
+                      {
+                        plannedData[hoveredPoint].additional_data
+                          .transect_type
+                      }
+                    </text>
+                  </g>
+                )}
+
+              {/* Show tooltip for hovered incident */}
+              {hoveredIncident !== null && incidents[hoveredIncident] && (
+                <g>
+                  <rect
+                    x={incidents[hoveredIncident].x + 10}
+                    y={incidents[hoveredIncident].y - 80}
+                    width="220"
+                    height={Math.min(
+                      80,
+                      25 +
+                        incidents[hoveredIncident].allReasons
+                          .length *
+                          15
+                    )}
+                    fill="rgba(255, 0, 0, 0.8)"
+                    rx="5"
+                  />
+                  <text
+                    x={incidents[hoveredIncident].x + 15}
+                    y={incidents[hoveredIncident].y - 60}
                     fill="white"
                     fontSize="12"
+                    fontWeight="bold"
                   >
-                    • {reason}
+                    INCIDENT ({incidents[hoveredIncident].count}{" "}
+                    events)
                   </text>
-                ))}
-            </g>
-          )}
-        </svg>
+                  {incidents[hoveredIncident].allReasons
+                    .slice(0, 3)
+                    .map((reason, i) => (
+                      <text
+                        key={`reason-${i}`}
+                        x={incidents[hoveredIncident].x + 15}
+                        y={incidents[hoveredIncident].y - 45 + i * 15}
+                        fill="white"
+                        fontSize="12"
+                      >
+                        • {reason}
+                      </text>
+                    ))}
+                </g>
+              )}
+            </svg>
 
-        {/* Depth legend */}
-        <div style={styles.depthLegend}>
-          <h3 style={styles.legendTitle}>Depth Scale</h3>
-          <div style={styles.depthBar}></div>
-          <div style={styles.depthLabels}>
-            <span style={{ fontSize: "0.875rem" }}>
-              {depthRange.min.toFixed(2)} m (Shallow)
-            </span>
-            <span style={{ fontSize: "0.875rem" }}>
-              {((depthRange.min + depthRange.max) / 2).toFixed(2)} m
-            </span>
-            <span style={{ fontSize: "0.875rem" }}>
-              {depthRange.max.toFixed(2)} m (Deep)
-            </span>
-          </div>
-        </div>
+            {/* Depth legend */}
+            <div style={{
+              marginTop: "16px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}>
+              <h3 style={{
+                fontSize: "1.125rem",
+                fontWeight: "600",
+                marginBottom: "8px"
+              }}>
+                Depth Scale
+              </h3>
+              <div style={{
+                width: "100%",
+                height: "32px",
+                background: "linear-gradient(to right, #dbeafe, #1e3a8a)",
+                borderRadius: "4px",
+              }}></div>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "4px",
+              }}>
+                <span style={{ fontSize: "0.875rem" }}>
+                  {depthRange.min.toFixed(2)} m (Shallow)
+                </span>
+                <span style={{ fontSize: "0.875rem" }}>
+                  {((depthRange.min + depthRange.max) / 2).toFixed(2)} m
+                </span>
+                <span style={{ fontSize: "0.875rem" }}>
+                  {depthRange.max.toFixed(2)} m (Deep)
+                </span>
+              </div>
+            </div>
 
-        {/* Mission statistics and incident summary */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statsCard("#eff6ff")}>
-            <h3 style={styles.statsTitle}>Actual Path</h3>
-            <p>
-              <strong>Data Points:</strong> {actualData.length}{" "}
-              {useSampleData ? "(sample)" : "(sampled)"}
-            </p>
-            <p>
-              <strong>Depth Range:</strong> {depthRange.min.toFixed(2)} -{" "}
-              {depthRange.max.toFixed(2)} m
-            </p>
-          </div>
+            {/* Mission statistics and incident summary */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "16px",
+              marginTop: "24px",
+              fontSize: "0.875rem",
+            }}>
+              <div style={{
+                padding: "12px",
+                borderRadius: "4px",
+                backgroundColor: "#eff6ff",
+              }}>
+                <h3 style={{
+                  fontWeight: "bold",
+                  marginBottom: "8px"
+                }}>
+                  Actual Path
+                </h3>
+                <p>
+                  <strong>Data Points:</strong> {actualData.length}
+                </p>
+                <p>
+                  <strong>Depth Range:</strong> {depthRange.min.toFixed(2)} -{" "}
+                  {depthRange.max.toFixed(2)} m
+                </p>
+              </div>
 
-          <div style={styles.statsCard("#f5f3ff")}>
-            <h3 style={styles.statsTitle}>Planned Route</h3>
-            <p>
-              <strong>Waypoints:</strong> {plannedData.length}
-            </p>
-            <p>
-              <strong>Mission Name:</strong>{" "}
-              {plannedData[0]?.additional_data?.mission_name || "Marden1"}
-            </p>
-          </div>
+              <div style={{
+                padding: "12px",
+                borderRadius: "4px",
+                backgroundColor: "#f5f3ff",
+              }}>
+                <h3 style={{
+                  fontWeight: "bold",
+                  marginBottom: "8px"
+                }}>
+                  Planned Route
+                </h3>
+                <p>
+                  <strong>Waypoints:</strong> {plannedData.length}
+                </p>
+              </div>
 
-          <div style={styles.statsCard("#fee2e2")}>
-            <h3 style={styles.statsTitle}>Incidents</h3>
-            <p>
-              <strong>Total Incidents:</strong> {incidents.length} clusters
-            </p>
-            <p>
-              <strong>Main Issue:</strong>{" "}
-              {incidents.length > 0 ? incidents[0].primaryReason : "None"}
-            </p>
-          </div>
-        </div>
+              <div style={{
+                padding: "12px",
+                borderRadius: "4px",
+                backgroundColor: "#fee2e2",
+              }}>
+                <h3 style={{
+                  fontWeight: "bold",
+                  marginBottom: "8px"
+                }}>
+                  Incidents
+                </h3>
+                <p>
+                  <strong>Total Incidents:</strong> {incidents.length} clusters
+                </p>
+              </div>
+            </div>
 
-        {/* Incident details */}
-        {incidents.length > 0 && (
-          <div style={styles.incidentTable}>
-            <h3 style={styles.statsTitle}>Incident Details</h3>
-            <div style={{ maxHeight: "160px", overflow: "auto" }}>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.tableHead}>Location</th>
-                    <th style={styles.tableHead}>Events</th>
-                    <th style={styles.tableHead}>Primary Issue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incidents.map((incident, i) => (
-                    <tr
-                      key={`incident-row-${i}`}
-                      style={styles.tableRow(i % 2 === 0)}
-                    >
-                      <td style={styles.tableCell}>
-                        {incident.latitude.toFixed(6)},{" "}
-                        {incident.longitude.toFixed(6)}
-                      </td>
-                      <td style={styles.tableCell}>{incident.count}</td>
-                      <td style={styles.tableCell}>{incident.primaryReason}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Incident details */}
+            {incidents.length > 0 && (
+              <div style={{
+                marginTop: "16px",
+                backgroundColor: "#f9fafb",
+                padding: "12px",
+                borderRadius: "4px",
+              }}>
+                <h3 style={{
+                  fontWeight: "bold",
+                  marginBottom: "8px"
+                }}>
+                  Incident Details
+                </h3>
+                <div style={{
+                  maxHeight: "160px",
+                  overflow: "auto",
+                }}>
+                  <table style={{
+                    width: "100%",
+                    fontSize: "0.75rem",
+                    borderCollapse: "collapse",
+                  }}>
+                    <thead>
+                      <tr>
+                        <th style={{
+                          textAlign: "left",
+                          padding: "4px",
+                        }}>
+                          Location
+                        </th>
+                        <th style={{
+                          textAlign: "left",
+                          padding: "4px",
+                        }}>
+                          Events
+                        </th>
+                        <th style={{
+                          textAlign: "left",
+                          padding: "4px",
+                        }}>
+                          Primary Issue
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {incidents.map((incident, i) => (
+                        <tr
+                          key={`incident-row-${i}`}
+                          style={{
+                            backgroundColor: i % 2 === 0 ? "#f3f4f6" : "transparent",
+                          }}
+                        >
+                          <td style={{
+                            padding: "4px",
+                          }}>
+                            {incident.latitude.toFixed(6)},{" "}
+                            {incident.longitude.toFixed(6)}
+                          </td>
+                          <td style={{
+                            padding: "4px",
+                          }}>
+                            {incident.count}
+                          </td>
+                          <td style={{
+                            padding: "4px",
+                          }}>
+                            {incident.primaryReason}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div style={{
+              marginTop: "16px",
+              fontSize: "0.75rem",
+              color: "#6b7280",
+            }}>
+              Hover over points to see detailed information. The actual path is
+              colored from light blue (shallow) to dark blue (deep), while the
+              planned route is shown as a purple dotted line with numbered
+              waypoints. Red circles indicate incident clusters.
             </div>
           </div>
-        )}
-
-        <div style={styles.footer}>
-          Hover over points to see detailed information. The actual path is
-          colored from light blue (shallow) to dark blue (deep), while the
-          planned route is shown as a purple dotted line with numbered
-          waypoints. Red circles indicate incident clusters.
         </div>
-      </div>
+      )}
     </div>
   );
 };
