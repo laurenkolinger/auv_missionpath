@@ -69,29 +69,49 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
 
   // Function to format time only (HH:MM:SS)
   const formatTimeOnly = (timestamp) => {
-    // Parse the timestamp string (YYYYMMDDHHmmSS.ffffff)
-    const hour = parseInt(timestamp.substring(8, 10));
-    const minute = parseInt(timestamp.substring(10, 12));
-    const second = parseInt(timestamp.substring(12, 14));
-    
-    // Create UTC date and convert to AST
-    const utcDate = new Date(Date.UTC(2025, 0, 1, hour, minute, second));
-    const astDate = new Date(utcDate.getTime() - (4 * 60 * 60 * 1000));
-    
-    // Format just the time
-    const pad = (num) => String(num).padStart(2, '0');
-    return `${pad(astDate.getUTCHours())}:${pad(astDate.getUTCMinutes())}:${pad(astDate.getUTCSeconds())}`;
+    if (!timestamp) return "00:00:00";
+    try {
+      // Parse the timestamp string (YYYYMMDDHHmmSS.ffffff)
+      const hour = parseInt(timestamp.substring(8, 10));
+      const minute = parseInt(timestamp.substring(10, 12));
+      const second = parseInt(timestamp.substring(12, 14));
+      
+      if (isNaN(hour) || isNaN(minute) || isNaN(second)) {
+        return "00:00:00";
+      }
+      
+      // Create UTC date and convert to AST
+      const utcDate = new Date(Date.UTC(2025, 0, 1, hour, minute, second));
+      const astDate = new Date(utcDate.getTime() - (4 * 60 * 60 * 1000));
+      
+      // Format just the time
+      const pad = (num) => String(num).padStart(2, '0');
+      return `${pad(astDate.getUTCHours())}:${pad(astDate.getUTCMinutes())}:${pad(astDate.getUTCSeconds())}`;
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return "00:00:00";
+    }
   };
 
   // Function to format date only (d Month YYYY)
   const formatDateOnly = (timestamp) => {
-    const year = parseInt(timestamp.substring(0, 4));
-    const month = parseInt(timestamp.substring(4, 6)) - 1;
-    const day = parseInt(timestamp.substring(6, 8));
-    
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                   'July', 'August', 'September', 'October', 'November', 'December'];
-    return `${day} ${months[month]} ${year}`;
+    if (!timestamp) return "1 January 2025";
+    try {
+      const year = parseInt(timestamp.substring(0, 4));
+      const month = parseInt(timestamp.substring(4, 6)) - 1;
+      const day = parseInt(timestamp.substring(6, 8));
+      
+      if (isNaN(year) || isNaN(month) || isNaN(day)) {
+        return "1 January 2025";
+      }
+      
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                     'July', 'August', 'September', 'October', 'November', 'December'];
+      return `${day} ${months[month]} ${year}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return "1 January 2025";
+    }
   };
 
   useEffect(() => {
