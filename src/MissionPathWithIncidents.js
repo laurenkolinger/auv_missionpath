@@ -778,10 +778,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                     fontSize="12"
                   >
                     Type:{" "}
-                    {
-                      plannedPoints[hoveredPoint].original.additional_data
-                        .transect_type
-                    }
+                    {plannedPoints[hoveredPoint].original.additional_data?.transect_type || "N/A"}
                   </text>
                 </g>
               )}
