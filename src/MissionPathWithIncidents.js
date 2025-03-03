@@ -18,7 +18,6 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [hoveredType, setHoveredType] = useState(null);
   const [hoveredIncident, setHoveredIncident] = useState(null);
-  const [showAttitude, setShowAttitude] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -264,11 +263,6 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
     return { x, y };
   };
 
-  // Toggle attitude visualization
-  const toggleAttitude = () => {
-    setShowAttitude(!showAttitude);
-  };
-
   if (loading) {
     return (
       <div
@@ -495,11 +489,6 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
       {!loading && !error && (
         <div style={styles.card}>
           <div style={styles.header}>
-            <div style={styles.buttonContainer}>
-              <button style={styles.button} onClick={toggleAttitude}>
-                {showAttitude ? "Hide Attitude" : "Show Attitude"}
-              </button>
-            </div>
             <div style={styles.legendContainer}>
               <div style={styles.legendItem}>
                 <div
@@ -650,50 +639,59 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               </g>
             ))}
 
-            {/* Show attitude indicators if enabled */}
-            {showAttitude &&
-              actualPoints
-                .filter((_, i) => i % 20 === 0)
-                .map((point, index) => {
-                  const originalPoint = point.original;
-                  // Only show if we have valid attitude data
-                  if (
-                    originalPoint.roll === undefined ||
-                    originalPoint.pitch === undefined
-                  )
-                    return null;
+            {/* Draw attitude indicators */}
+            {actualPoints.map((point, index) => {
+              const originalPoint = point.original;
+              // Only show if we have valid attitude data
+              if (
+                originalPoint.roll === undefined ||
+                originalPoint.pitch === undefined ||
+                index % 10 !== 0  // Show every 10th point to avoid clutter
+              )
+                return null;
 
-                  // Convert roll and pitch to radians
-                  const rollRad = (originalPoint.roll * Math.PI) / 180;
-                  const pitchRad = (originalPoint.pitch * Math.PI) / 180;
+              // Convert roll and pitch to radians
+              const rollRad = (originalPoint.roll * Math.PI) / 180;
+              const pitchRad = (originalPoint.pitch * Math.PI) / 180;
 
-                  // Calculate line endpoints for roll and pitch indicators
-                  const rollLength = 10;
-                  const pitchLength = 10;
+              // Calculate line endpoints for roll and pitch indicators
+              const rollLength = 15;
+              const pitchLength = 15;
 
-                  return (
-                    <g key={`attitude-${index}`}>
-                      {/* Roll indicator */}
-                      <line
-                        x1={point.x}
-                        y1={point.y}
-                        x2={point.x + rollLength * Math.sin(rollRad)}
-                        y2={point.y + rollLength * Math.cos(rollRad)}
-                        stroke="orange"
-                        strokeWidth="1"
-                      />
-                      {/* Pitch indicator */}
-                      <line
-                        x1={point.x}
-                        y1={point.y}
-                        x2={point.x + pitchLength * Math.sin(pitchRad)}
-                        y2={point.y - pitchLength * Math.cos(pitchRad)}
-                        stroke="green"
-                        strokeWidth="1"
-                      />
-                    </g>
-                  );
-                })}
+              return (
+                <g key={`attitude-${index}`}>
+                  {/* Roll indicator */}
+                  <line
+                    x1={point.x}
+                    y1={point.y}
+                    x2={point.x + rollLength * Math.sin(rollRad)}
+                    y2={point.y + rollLength * Math.cos(rollRad)}
+                    stroke="orange"
+                    strokeWidth="2"
+                    strokeOpacity="0.7"
+                  />
+                  {/* Pitch indicator */}
+                  <line
+                    x1={point.x}
+                    y1={point.y}
+                    x2={point.x + pitchLength * Math.sin(pitchRad)}
+                    y2={point.y - pitchLength * Math.cos(pitchRad)}
+                    stroke="green"
+                    strokeWidth="2"
+                    strokeOpacity="0.7"
+                  />
+                </g>
+              );
+            })}
+
+            {/* Update legend to include attitude indicators */}
+            <g transform={`translate(${svgWidth - 150}, ${svgHeight - 100})`}>
+              <text x="0" y="0" fontSize="12" fill="#666">Attitude Indicators:</text>
+              <line x1="0" y1="15" x2="20" y2="15" stroke="orange" strokeWidth="2" strokeOpacity="0.7" />
+              <text x="25" y="20" fontSize="10" fill="#666">Roll</text>
+              <line x1="0" y1="35" x2="20" y2="35" stroke="green" strokeWidth="2" strokeOpacity="0.7" />
+              <text x="25" y="40" fontSize="10" fill="#666">Pitch</text>
+            </g>
 
             {/* Show tooltip for hovered actual point */}
             {hoveredPoint !== null &&
