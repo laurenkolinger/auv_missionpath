@@ -70,21 +70,17 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
 
   // Function to format time only (HH:MM:SS)
   const formatTimeOnly = (timestamp) => {
-    if (!timestamp || timestamp.length < 14) return "00:00:00";
+    if (!timestamp || typeof timestamp !== 'string') return "00:00:00";
     try {
-      // Parse the timestamp (YYYYMMDDHHMMSS.xxx format)
-      const year = parseInt(timestamp.substring(0, 4));
-      const month = parseInt(timestamp.substring(4, 6)) - 1; // JS months are 0-based
-      const day = parseInt(timestamp.substring(6, 8));
-      const hour = parseInt(timestamp.substring(8, 10));
-      const minute = parseInt(timestamp.substring(10, 12));
-      const second = parseInt(timestamp.substring(12, 14));
+      // Parse the timestamp (YYYYMMDDHHmmss.ffffff format)
+      const timeStr = timestamp.split('.')[0]; // Remove microseconds
+      if (timeStr.length < 14) return "00:00:00";
 
-      // Create a UTC date
-      const date = new Date(Date.UTC(year, month, day, hour, minute, second));
-      
-      // Format using date-fns with explicit UTC formatting
-      return format(date, 'HH:mm:ss');
+      const hours = timeStr.substring(8, 10);
+      const minutes = timeStr.substring(10, 12);
+      const seconds = timeStr.substring(12, 14);
+
+      return `${hours}:${minutes}:${seconds}`;
     } catch (error) {
       console.error('Error formatting time:', error, 'timestamp:', timestamp);
       return "00:00:00";
@@ -93,20 +89,17 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
 
   // Function to format date only (d Month YYYY)
   const formatDateOnly = (timestamp) => {
-    if (!timestamp || timestamp.length < 14) return "1 January 2025";
+    if (!timestamp || typeof timestamp !== 'string') return "1 January 2025";
     try {
-      // Parse the timestamp (YYYYMMDDHHMMSS.xxx format)
-      const year = parseInt(timestamp.substring(0, 4));
-      const month = parseInt(timestamp.substring(4, 6)) - 1; // JS months are 0-based
-      const day = parseInt(timestamp.substring(6, 8));
-      const hour = parseInt(timestamp.substring(8, 10));
-      const minute = parseInt(timestamp.substring(10, 12));
-      const second = parseInt(timestamp.substring(12, 14));
+      // Parse the timestamp (YYYYMMDDHHmmss.ffffff format)
+      const timeStr = timestamp.split('.')[0]; // Remove microseconds
+      if (timeStr.length < 14) return "1 January 2025";
 
-      // Create a UTC date
-      const date = new Date(Date.UTC(year, month, day, hour, minute, second));
-      
-      // Format using date-fns with explicit date formatting
+      const year = timeStr.substring(0, 4);
+      const month = parseInt(timeStr.substring(4, 6)) - 1; // JS months are 0-based
+      const day = timeStr.substring(6, 8);
+
+      const date = new Date(year, month, day);
       return format(date, 'd MMMM yyyy');
     } catch (error) {
       console.error('Error formatting date:', error, 'timestamp:', timestamp);
