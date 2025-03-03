@@ -22,12 +22,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
 
   // New state variables for data toggles
   const [showAttitudeIndicators, setShowAttitudeIndicators] = useState(true);
-  const [showVelocity, setShowVelocity] = useState(false);
-  const [showModes, setShowModes] = useState(false);
-  const [showDepthMetrics, setShowDepthMetrics] = useState(false);
-  const [showBattery, setShowBattery] = useState(false);
-  const [showFoundObjects, setShowFoundObjects] = useState(false);
-  
+
   // State for ranges of continuous variables
   const [velocityRange, setVelocityRange] = useState({ min: 0, max: 0 });
   const [batteryRange, setBatteryRange] = useState({ min: 0, max: 0 });
@@ -557,36 +552,6 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                 {showAttitudeIndicators ? "Hide Attitude" : "Show Attitude"}
               </button>
               <button 
-                style={{...styles.button, backgroundColor: showVelocity ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowVelocity(!showVelocity)}
-              >
-                {showVelocity ? "Hide Velocity" : "Show Velocity"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showModes ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowModes(!showModes)}
-              >
-                {showModes ? "Hide Modes" : "Show Modes"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showDepthMetrics ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowDepthMetrics(!showDepthMetrics)}
-              >
-                {showDepthMetrics ? "Hide Depth Metrics" : "Show Depth Metrics"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showBattery ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowBattery(!showBattery)}
-              >
-                {showBattery ? "Hide Battery" : "Show Battery"}
-              </button>
-              <button 
-                style={{...styles.button, backgroundColor: showFoundObjects ? "#3b82f6" : "#9ca3af"}} 
-                onClick={() => setShowFoundObjects(!showFoundObjects)}
-              >
-                {showFoundObjects ? "Hide Found Objects" : "Show Found Objects"}
-              </button>
-              <button 
                 style={{...styles.button, backgroundColor: showDepthPoints ? "#3b82f6" : "#9ca3af"}} 
                 onClick={() => setShowDepthPoints(!showDepthPoints)}
               >
@@ -883,85 +848,104 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
             {/* Restructured tooltip */}
             {hoveredPoint !== null && actualPoints[hoveredPoint] && (
               <g>
-                <rect
-                  x={actualPoints[hoveredPoint].x + 10}
-                  y={actualPoints[hoveredPoint].y - 180}
-                  width="280"
-                  height="170"
-                  fill="rgba(0, 0, 0, 0.8)"
-                  rx="5"
-                />
-                
-                {/* Time and Position Section */}
-                <g transform={`translate(${actualPoints[hoveredPoint].x + 15}, ${actualPoints[hoveredPoint].y - 170})`}>
-                  <text fill="white" fontSize="12" fontWeight="bold">Time and Position</text>
-                  <text y="15" fill="#8db0e8" fontSize="11">
-                    {new Date(actualPoints[hoveredPoint].original.timestamp_ros * 1000).toISOString()}
-                  </text>
-                  <text y="30" fill="#8db0e8" fontSize="11">
-                    Lat: {actualPoints[hoveredPoint].original.latitude.toFixed(6)}°
-                  </text>
-                  <text y="45" fill="#8db0e8" fontSize="11">
-                    Lon: {actualPoints[hoveredPoint].original.longitude.toFixed(6)}°
-                  </text>
-                </g>
+                {/* Calculate tooltip position */}
+                {(() => {
+                  const point = actualPoints[hoveredPoint];
+                  const tooltipWidth = 280;
+                  const tooltipHeight = 170;
+                  
+                  // Check if tooltip would go out of bounds
+                  const wouldExceedRight = point.x + tooltipWidth + 10 > svgWidth;
+                  const wouldExceedTop = point.y - tooltipHeight - 10 < 0;
+                  
+                  // Calculate final position
+                  const tooltipX = wouldExceedRight ? point.x - tooltipWidth - 10 : point.x + 10;
+                  const tooltipY = wouldExceedTop ? point.y + 10 : point.y - tooltipHeight - 10;
+                  
+                  return (
+                    <>
+                      <rect
+                        x={tooltipX}
+                        y={tooltipY}
+                        width={tooltipWidth}
+                        height={tooltipHeight}
+                        fill="rgba(0, 0, 0, 0.8)"
+                        rx="5"
+                      />
+                      
+                      {/* Time and Position Section */}
+                      <g transform={`translate(${tooltipX + 5}, ${tooltipY + 10})`}>
+                        <text fill="white" fontSize="12" fontWeight="bold">Time and Position</text>
+                        <text y="15" fill="#8db0e8" fontSize="11">
+                          {new Date(point.original.timestamp_ros * 1000).toISOString()}
+                        </text>
+                        <text y="30" fill="#8db0e8" fontSize="11">
+                          Lat: {point.original.latitude.toFixed(6)}°
+                        </text>
+                        <text y="45" fill="#8db0e8" fontSize="11">
+                          Lon: {point.original.longitude.toFixed(6)}°
+                        </text>
+                      </g>
 
-                {/* Vehicle State Section */}
-                <g transform={`translate(${actualPoints[hoveredPoint].x + 155}, ${actualPoints[hoveredPoint].y - 170})`}>
-                  <text fill="white" fontSize="12" fontWeight="bold">Vehicle State</text>
-                  <text y="15" fill="#8db0e8" fontSize="11">
-                    Mode: {actualPoints[hoveredPoint].original.navMode}
-                  </text>
-                  <text y="30" fill="#8db0e8" fontSize="11">
-                    Battery: {actualPoints[hoveredPoint].original.battery_volts?.toFixed(2)}V
-                  </text>
-                  <text y="45" fill="#8db0e8" fontSize="11">
-                    Error: {actualPoints[hoveredPoint].original.errorState}
-                  </text>
-                </g>
+                      {/* Vehicle State Section */}
+                      <g transform={`translate(${tooltipX + 145}, ${tooltipY + 10})`}>
+                        <text fill="white" fontSize="12" fontWeight="bold">Vehicle State</text>
+                        <text y="15" fill="#8db0e8" fontSize="11">
+                          Mode: {point.original.navMode}
+                        </text>
+                        <text y="30" fill="#8db0e8" fontSize="11">
+                          Battery: {point.original.battery_volts?.toFixed(2)}V
+                        </text>
+                        <text y="45" fill="#8db0e8" fontSize="11">
+                          Error: {point.original.errorState}
+                        </text>
+                      </g>
 
-                {/* Motion Data Section */}
-                <g transform={`translate(${actualPoints[hoveredPoint].x + 15}, ${actualPoints[hoveredPoint].y - 110})`}>
-                  <text fill="white" fontSize="12" fontWeight="bold">Motion Data</text>
-                  <text y="15" fill="#8db0e8" fontSize="11">
-                    Depth: {actualPoints[hoveredPoint].depth.toFixed(2)}m
-                  </text>
-                  <text y="30" fill="#8db0e8" fontSize="11">
-                    Velocity: {Math.sqrt(
-                      Math.pow(actualPoints[hoveredPoint].original.velX, 2) +
-                      Math.pow(actualPoints[hoveredPoint].original.velY, 2) +
-                      Math.pow(actualPoints[hoveredPoint].original.velZ, 2)
-                    ).toFixed(2)} m/s
-                  </text>
-                  <text y="45" fill="#8db0e8" fontSize="11">
-                    Altimeter: {actualPoints[hoveredPoint].original.acousticAltimeter?.toFixed(2)}m
-                  </text>
-                </g>
+                      {/* Motion Data Section */}
+                      <g transform={`translate(${tooltipX + 5}, ${tooltipY + 70})`}>
+                        <text fill="white" fontSize="12" fontWeight="bold">Motion Data</text>
+                        <text y="15" fill="#8db0e8" fontSize="11">
+                          Depth: {point.depth.toFixed(2)}m
+                        </text>
+                        <text y="30" fill="#8db0e8" fontSize="11">
+                          Velocity: {Math.sqrt(
+                            Math.pow(point.original.velX, 2) +
+                            Math.pow(point.original.velY, 2) +
+                            Math.pow(point.original.velZ, 2)
+                          ).toFixed(2)} m/s
+                        </text>
+                        <text y="45" fill="#8db0e8" fontSize="11">
+                          Altimeter: {point.original.acousticAltimeter?.toFixed(2)}m
+                        </text>
+                      </g>
 
-                {/* Attitude Section */}
-                <g transform={`translate(${actualPoints[hoveredPoint].x + 155}, ${actualPoints[hoveredPoint].y - 110})`}>
-                  <text fill="white" fontSize="12" fontWeight="bold">Attitude</text>
-                  <text y="15" fill="#8db0e8" fontSize="11">
-                    Roll: {actualPoints[hoveredPoint].original.roll?.toFixed(2)}°
-                  </text>
-                  <text y="30" fill="#8db0e8" fontSize="11">
-                    Pitch: {actualPoints[hoveredPoint].original.pitch?.toFixed(2)}°
-                  </text>
-                  <text y="45" fill="#8db0e8" fontSize="11">
-                    Yaw: {actualPoints[hoveredPoint].original.yaw?.toFixed(2)}°
-                  </text>
-                </g>
+                      {/* Attitude Section */}
+                      <g transform={`translate(${tooltipX + 145}, ${tooltipY + 70})`}>
+                        <text fill="white" fontSize="12" fontWeight="bold">Attitude</text>
+                        <text y="15" fill="#8db0e8" fontSize="11">
+                          Roll: {point.original.roll?.toFixed(2)}°
+                        </text>
+                        <text y="30" fill="#8db0e8" fontSize="11">
+                          Pitch: {point.original.pitch?.toFixed(2)}°
+                        </text>
+                        <text y="45" fill="#8db0e8" fontSize="11">
+                          Yaw: {point.original.yaw?.toFixed(2)}°
+                        </text>
+                      </g>
 
-                {/* Detection Data Section */}
-                <g transform={`translate(${actualPoints[hoveredPoint].x + 15}, ${actualPoints[hoveredPoint].y - 50})`}>
-                  <text fill="white" fontSize="12" fontWeight="bold">Detection Data</text>
-                  <text y="15" fill="#8db0e8" fontSize="11">
-                    Found Objects: {actualPoints[hoveredPoint].original.cotsNumFound || 0}
-                  </text>
-                  <text y="30" fill="#8db0e8" fontSize="11">
-                    Maybe Objects: {actualPoints[hoveredPoint].original.cotsNumMaybe || 0}
-                  </text>
-                </g>
+                      {/* Detection Data Section */}
+                      <g transform={`translate(${tooltipX + 5}, ${tooltipY + 130})`}>
+                        <text fill="white" fontSize="12" fontWeight="bold">Detection Data</text>
+                        <text y="15" fill="#8db0e8" fontSize="11">
+                          Found Objects: {point.original.cotsNumFound || 0}
+                        </text>
+                        <text y="30" fill="#8db0e8" fontSize="11">
+                          Maybe Objects: {point.original.cotsNumMaybe || 0}
+                        </text>
+                      </g>
+                    </>
+                  );
+                })()}
               </g>
             )}
 
