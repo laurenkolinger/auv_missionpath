@@ -11,6 +11,10 @@ const MISSION_CONFIG = {
   // Required columns: timestamp_ros, latitude, longitude, depth
   // Optional columns: roll, pitch, yaw, errorState, distance_to_ocean_floor
   csvPath: "/data/mission_travel_path_runway.csv",
+
+  // The CSV file containing USBL tracking data
+  // Required columns: timestamp, id, latitude, longitude, depth
+  usblPath: "/data/runway_3mar25_2.csv",
 };
 
 function App() {
@@ -19,6 +23,7 @@ function App() {
       <MissionPathWithIncidents
         missionJsonPath={MISSION_CONFIG.jsonPath}
         missionCsvPath={MISSION_CONFIG.csvPath}
+        usblPath={MISSION_CONFIG.usblPath}
       />
     </div>
   );

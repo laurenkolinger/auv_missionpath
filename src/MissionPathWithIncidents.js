@@ -3,7 +3,7 @@ import Papa from "papaparse";
 import _ from "lodash";
 import { format, parseISO } from 'date-fns';
 
-const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
+const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath, usblPath }) => {
   const [actualData, setActualData] = useState([]);
   const [plannedData, setPlannedData] = useState([]);
   const [incidents, setIncidents] = useState([]);
@@ -22,6 +22,10 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [showIncidents, setShowIncidents] = useState(false);
   const [missionName, setMissionName] = useState("");
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
+
+  // New state variables for USBL data
+  const [usblData, setUsblData] = useState([]);
+  const [showUsblTrack, setShowUsblTrack] = useState(false);
 
   // New state variables for data toggles
   const [showAttitudeIndicators, setShowAttitudeIndicators] = useState(false);
@@ -113,6 +117,30 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
         setLoading(true);
         console.log("Starting to load data...");
 
+        // Load USBL data
+        console.log("Loading USBL data...");
+        const usblResponse = await fetch(usblPath);
+        if (!usblResponse.ok) {
+          throw new Error(`Failed to load USBL data: ${usblResponse.status} ${usblResponse.statusText}`);
+        }
+        const usblText = await usblResponse.text();
+        
+        // Parse USBL CSV data
+        const usblResults = Papa.parse(usblText, {
+          skipEmptyLines: true,
+          dynamicTyping: true,
+        });
+
+        // Process USBL data - format: timestamp,id,lat,long,depth,something,incident
+        const processedUsblData = usblResults.data.map(row => ({
+          timestamp: row[0],
+          latitude: row[2],
+          longitude: row[3],
+          depth: row[4],
+        })).filter(row => row.latitude && row.longitude && row.depth);
+
+        setUsblData(processedUsblData);
+
         // Load mission path data
         console.log("Fetching CSV...");
         const csvResponse = await fetch(missionCsvPath);
@@ -190,8 +218,10 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
 
         // Calculate depth range for color mapping
         const depthValues = sampledData.map((row) => row.depth);
-        const minDepth = Math.min(...depthValues);
-        const maxDepth = Math.max(...depthValues);
+        const usblDepths = processedUsblData.map(row => row.depth);
+        const allDepths = [...depthValues, ...usblDepths];
+        const minDepth = Math.min(...allDepths);
+        const maxDepth = Math.max(...allDepths);
         setDepthRange({ min: minDepth, max: maxDepth });
 
         // Detect incidents
@@ -203,9 +233,11 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
         const actualLongs = sampledData.map((row) => row.longitude);
         const plannedLats = missionData.waypoints.map((wp) => wp.latitude);
         const plannedLongs = missionData.waypoints.map((wp) => wp.longitude);
+        const usblLats = processedUsblData.map((row) => row.latitude);
+        const usblLongs = processedUsblData.map((row) => row.longitude);
 
-        const allLats = [...actualLats, ...plannedLats];
-        const allLongs = [...actualLongs, ...plannedLongs];
+        const allLats = [...actualLats, ...plannedLats, ...usblLats];
+        const allLongs = [...actualLongs, ...plannedLongs, ...usblLongs];
 
         const minLat = Math.min(...allLats);
         const maxLat = Math.max(...allLats);
@@ -237,7 +269,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
     };
 
     loadData();
-  }, [missionJsonPath, missionCsvPath]);
+  }, [missionJsonPath, missionCsvPath, usblPath]);
 
   // Function to detect incidents in the data
   const detectIncidents = (data) => {
@@ -703,6 +735,16 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
             >
               {showBasePoints ? "Hide Base Points" : "Show Base Points"}
             </button>
+            <button 
+              style={{
+                ...styles.button,
+                backgroundColor: showUsblTrack ? "#3b82f6" : "#e2e8f0",
+                color: showUsblTrack ? "white" : "#64748b",
+              }}
+              onClick={() => setShowUsblTrack(!showUsblTrack)}
+            >
+              {showUsblTrack ? "Hide USBL Track" : "Show USBL Track"}
+            </button>
           </div>
 
           {/* SVG plot */}
@@ -712,6 +754,27 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
             style={styles.svgContainer}
           >
+            {/* USBL track */}
+            {showUsblTrack && usblData.map((point, index) => {
+              const { x, y } = mapToSVG(
+                point.latitude,
+                point.longitude,
+                svgWidth,
+                svgHeight
+              );
+              return (
+                <circle
+                  key={`usbl-point-${index}`}
+                  cx={x}
+                  cy={y}
+                  r="2"
+                  fill={getColorForDepth(point.depth)}
+                  stroke="none"
+                  opacity="0.8"
+                />
+              );
+            })}
+
             {/* Base black lines for actual and planned paths */}
             <path
               d={actualPoints
