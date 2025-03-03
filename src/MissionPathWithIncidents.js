@@ -796,41 +796,54 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                   <g>
                     <rect
                       x={point.x + 10}
-                      y={point.y - 80}
-                      width="240"
-                      height="160"
+                      y={point.y - 120}
+                      width="280"
+                      height="240"
                       fill="#1e293b"
                       fillOpacity="0.95"
                       rx="4"
                     />
-                    <text x={point.x + 20} y={point.y - 60} fill="white" fontSize="12" fontWeight="bold">
+                    <text x={point.x + 20} y={point.y - 100} fill="white" fontSize="12" fontWeight="bold">
                       Time and Position
                     </text>
-                    <text x={point.x + 20} y={point.y - 45} fill="#8db0e8" fontSize="11">
+                    <text x={point.x + 20} y={point.y - 85} fill="#8db0e8" fontSize="11">
                       {formatDateOnly(point.original.timestamp_sys)} {formatTimeOnly(point.original.timestamp_sys)} AST
                     </text>
-                    <text x={point.x + 20} y={point.y - 30} fill="#8db0e8" fontSize="11">
-                      Lat: {point.original.latitude.toFixed(6)}°
-                    </text>
-                    <text x={point.x + 20} y={point.y - 15} fill="#8db0e8" fontSize="11">
-                      Long: {point.original.longitude.toFixed(6)}°
+                    <text x={point.x + 20} y={point.y - 70} fill="#8db0e8" fontSize="11">
+                      Lat: {point.original.latitude.toFixed(6)}° | Long: {point.original.longitude.toFixed(6)}°
                     </text>
 
-                    <text x={point.x + 20} y={point.y} fill="white" fontSize="12" fontWeight="bold">
+                    <text x={point.x + 20} y={point.y - 50} fill="white" fontSize="12" fontWeight="bold">
                       Vehicle State
                     </text>
-                    <text x={point.x + 20} y={point.y + 15} fill="#8db0e8" fontSize="11">
+                    <text x={point.x + 20} y={point.y - 35} fill="#8db0e8" fontSize="11">
                       Mode: {point.original.navMode} | Battery: {point.original.battery_volts.toFixed(2)}V
                     </text>
-                    <text x={point.x + 20} y={point.y + 30} fill="#8db0e8" fontSize="11">
+                    <text x={point.x + 20} y={point.y - 20} fill="#8db0e8" fontSize="11">
                       Error State: {point.original.errorState}
                     </text>
 
-                    <text x={point.x + 20} y={point.y + 45} fill="white" fontSize="12" fontWeight="bold">
+                    <text x={point.x + 20} y={point.y} fill="white" fontSize="12" fontWeight="bold">
                       Motion Data
                     </text>
-                    <text x={point.x + 20} y={point.y + 60} fill="#8db0e8" fontSize="11">
+                    <text x={point.x + 20} y={point.y + 15} fill="#8db0e8" fontSize="11">
                       Depth: {point.original.depth.toFixed(2)}m | Alt: {point.original.acousticAltimeter.toFixed(2)}m
+                    </text>
+                    <text x={point.x + 20} y={point.y + 30} fill="#8db0e8" fontSize="11">
+                      Velocity: ({point.original.velX.toFixed(2)}, {point.original.velY.toFixed(2)}, {point.original.velZ.toFixed(2)}) m/s
+                    </text>
+
+                    <text x={point.x + 20} y={point.y + 50} fill="white" fontSize="12" fontWeight="bold">
+                      Attitude
+                    </text>
+                    <text x={point.x + 20} y={point.y + 65} fill="#8db0e8" fontSize="11">
+                      Roll: {point.original.roll.toFixed(2)}° | Pitch: {point.original.pitch.toFixed(2)}°
+                    </text>
+                    <text x={point.x + 20} y={point.y + 80} fill="#8db0e8" fontSize="11">
+                      Yaw: {point.original.yaw.toFixed(2)}° | Floor Dist: {point.original.distance_to_ocean_floor.toFixed(2)}m
+                    </text>
+                    <text x={point.x + 20} y={point.y + 95} fill="#8db0e8" fontSize="11">
+                      Forward Stereo: {point.original.forwardStereo.toFixed(2)}m
                     </text>
                   </g>
                 )}
