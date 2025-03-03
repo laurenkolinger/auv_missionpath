@@ -20,78 +20,71 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [hoveredIncident, setHoveredIncident] = useState(null);
   const [showAttitude, setShowAttitude] = useState(false);
 
-  // Load mission data on component mount
   useEffect(() => {
-    const loadMissionData = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        
-        // Load and parse mission JSON
-        const missionResponse = await fetch(missionJsonPath);
-        const missionData = await missionResponse.json();
-        
-        if (!missionData.waypoints || !Array.isArray(missionData.waypoints)) {
-          throw new Error("Invalid mission file format: missing waypoints array");
-        }
+        console.log("Starting to load data...");
 
-        // Load and parse mission path CSV
-        const pathResponse = await fetch(missionCsvPath);
-        const pathText = await pathResponse.text();
-        const parsedPath = Papa.parse(pathText, {
+        // Load mission path data
+        console.log("Fetching CSV...");
+        const csvResponse = await fetch(missionCsvPath);
+        if (!csvResponse.ok) {
+          throw new Error(`Failed to load CSV: ${csvResponse.status} ${csvResponse.statusText}`);
+        }
+        const csvText = await csvResponse.text();
+        console.log("CSV loaded, length:", csvText.length);
+
+        // Parse CSV data
+        const parsedResults = Papa.parse(csvText, {
           header: true,
           dynamicTyping: true,
           skipEmptyLines: true,
         });
 
-        const validPathData = parsedPath.data.filter(
+        // Filter out any rows with null coordinates or depth
+        const validData = parsedResults.data.filter(
           (row) =>
             row.latitude !== null &&
             row.longitude !== null &&
             row.depth !== null
         );
 
-        if (validPathData.length === 0) {
-          throw new Error("No valid data points found in path file");
+        console.log(`Parsed ${validData.length} valid data points`);
+
+        // Load planned mission data
+        console.log("Fetching JSON...");
+        const jsonResponse = await fetch(missionJsonPath);
+        if (!jsonResponse.ok) {
+          throw new Error(`Failed to load JSON: ${jsonResponse.status} ${jsonResponse.statusText}`);
         }
+        const missionData = await jsonResponse.json();
+        console.log("JSON loaded:", missionData.mission_summary?.mission_name);
 
-        processData(validPathData, missionData.waypoints);
-      } catch (err) {
-        console.error("Error loading mission data:", err);
-        setError(`Error loading mission data: ${err.message}`);
-        setLoading(false);
-      }
-    };
+        // Set planned data
+        setPlannedData(missionData.waypoints);
 
-    loadMissionData();
-  }, [missionJsonPath, missionCsvPath]);
+        // Sample the data to avoid rendering too many points if it's large
+        const sampleRate = Math.ceil(validData.length / 2000);
+        const sampledData = validData.filter(
+          (_, index) => index % sampleRate === 0
+        );
 
-  // Function to process data
-  const processData = (newActualData, newPlannedData) => {
-    try {
-      // Sample the data to avoid rendering too many points if it's large
-      const sampleRate = Math.ceil(newActualData.length / 2000);
-      const sampledData = newActualData.filter(
-        (_, index) => index % sampleRate === 0
-      );
-
-      // Calculate depth range for color mapping
-      if (sampledData.length > 0) {
+        // Calculate depth range for color mapping
         const depthValues = sampledData.map((row) => row.depth);
         const minDepth = Math.min(...depthValues);
         const maxDepth = Math.max(...depthValues);
         setDepthRange({ min: minDepth, max: maxDepth });
-      }
 
-      // Detect incidents
-      const detectedIncidents = detectIncidents(newActualData);
-      setIncidents(detectedIncidents);
+        // Detect incidents
+        const detectedIncidents = detectIncidents(validData);
+        setIncidents(detectedIncidents);
 
-      // Calculate the geographic bounds
-      if (sampledData.length > 0 && newPlannedData.length > 0) {
+        // Calculate the geographic bounds
         const actualLats = sampledData.map((row) => row.latitude);
         const actualLongs = sampledData.map((row) => row.longitude);
-        const plannedLats = newPlannedData.map((wp) => wp.latitude);
-        const plannedLongs = newPlannedData.map((wp) => wp.longitude);
+        const plannedLats = missionData.waypoints.map((wp) => wp.latitude);
+        const plannedLongs = missionData.waypoints.map((wp) => wp.longitude);
 
         const allLats = [...actualLats, ...plannedLats];
         const allLongs = [...actualLongs, ...plannedLongs];
@@ -111,18 +104,18 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
           minLong: minLong - longPadding,
           maxLong: maxLong + longPadding,
         });
-      }
 
-      setActualData(sampledData);
-      setPlannedData(newPlannedData);
-      setLoading(false);
-      setError(null);
-    } catch (err) {
-      console.error("Error processing data:", err);
-      setError(`Error processing data: ${err.message}`);
-      setLoading(false);
-    }
-  };
+        setActualData(sampledData);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error in loadData:", err);
+        setError(`Error loading or processing data: ${err.message}`);
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [missionJsonPath, missionCsvPath]);
 
   // Function to detect incidents in the data
   const detectIncidents = (data) => {
@@ -279,11 +272,36 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   };
 
   if (loading) {
-    return <div>Loading mission data...</div>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "300px",
+          gap: "20px",
+        }}
+      >
+        <div>Loading mission data...</div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div style={{ color: "#dc2626" }}>{error}</div>;
+    return (
+      <div
+        style={{
+          padding: "16px",
+          color: "#d32f2f",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <div>{error}</div>
+      </div>
+    );
   }
 
   return (
