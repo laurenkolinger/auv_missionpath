@@ -385,7 +385,7 @@ const MissionPathWithIncidents = () => {
   const [actualData, setActualData] = useState([]);
   const [plannedData, setPlannedData] = useState([]);
   const [incidents, setIncidents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [depthRange, setDepthRange] = useState({ min: 0, max: 0 });
   const [viewBox, setViewBox] = useState({
@@ -400,101 +400,85 @@ const MissionPathWithIncidents = () => {
   const [showAttitude, setShowAttitude] = useState(false);
   const [useSampleData, setUseSampleData] = useState(false);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        console.log("Starting to load data...");
+  // Add new state for file names
+  const [csvFileName, setCsvFileName] = useState("");
+  const [jsonFileName, setJsonFileName] = useState("");
 
-        let missionData;
-        let validData;
+  // Function to handle CSV file upload
+  const handleCsvUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setCsvFileName(file.name);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const csvText = e.target.result;
+        const parsedResults = Papa.parse(csvText, {
+          header: true,
+          dynamicTyping: true,
+          skipEmptyLines: true,
+        });
 
-        if (useSampleData) {
-          console.log("Using sample data");
-          missionData = { waypoints: SAMPLE_WAYPOINTS };
-          validData = SAMPLE_PATH_DATA;
-        } else {
-          // Try to load actual mission path data
-          try {
-            console.log("Fetching CSV...");
-            const csvResponse = await fetch(
-              "/mission_travel_path_marden1_short.csv"
-            );
-            if (!csvResponse.ok) {
-              throw new Error(
-                `Failed to load CSV: ${csvResponse.status} ${csvResponse.statusText}`
-              );
-            }
-            const csvText = await csvResponse.text();
-            console.log("CSV loaded, length:", csvText.length);
-
-            // Parse CSV data
-            const parsedResults = Papa.parse(csvText, {
-              header: true,
-              dynamicTyping: true,
-              skipEmptyLines: true,
-            });
-
-            // Filter out any rows with null coordinates or depth
-            validData = parsedResults.data.filter(
-              (row) =>
-                row.latitude !== null &&
-                row.longitude !== null &&
-                row.depth !== null
-            );
-
-            console.log(`Parsed ${validData.length} valid data points`);
-          } catch (csvError) {
-            console.error("Error loading CSV:", csvError);
-            console.log("Falling back to sample path data");
-            validData = SAMPLE_PATH_DATA;
-          }
-
-          // Try to load planned mission data
-          try {
-            console.log("Fetching JSON...");
-            const jsonResponse = await fetch("/Marden1.json");
-            if (!jsonResponse.ok) {
-              throw new Error(
-                `Failed to load JSON: ${jsonResponse.status} ${jsonResponse.statusText}`
-              );
-            }
-            missionData = await jsonResponse.json();
-            console.log(
-              "JSON loaded:",
-              missionData.mission_summary?.mission_name
-            );
-          } catch (jsonError) {
-            console.error("Error loading JSON:", jsonError);
-            console.log("Falling back to sample waypoint data");
-            missionData = { waypoints: SAMPLE_WAYPOINTS };
-          }
-        }
-
-        // Set planned data
-        setPlannedData(missionData.waypoints);
-
-        // Sample the data to avoid rendering too many points if it's large
-        const sampleRate = Math.ceil(validData.length / 2000);
-        const sampledData = validData.filter(
-          (_, index) => index % sampleRate === 0
+        // Filter out any rows with null coordinates or depth
+        const validData = parsedResults.data.filter(
+          (row) =>
+            row.latitude !== null &&
+            row.longitude !== null &&
+            row.depth !== null
         );
 
-        // Calculate depth range for color mapping
+        processData(validData, plannedData);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // Function to handle JSON file upload
+  const handleJsonUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setJsonFileName(file.name);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const missionData = JSON.parse(e.target.result);
+          processData(actualData, missionData.waypoints);
+        } catch (error) {
+          setError("Error parsing JSON file: " + error.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // Function to process data when either file is uploaded
+  const processData = (newActualData, newPlannedData) => {
+    try {
+      setLoading(true);
+
+      // Sample the data to avoid rendering too many points if it's large
+      const sampleRate = Math.ceil(newActualData.length / 2000);
+      const sampledData = newActualData.filter(
+        (_, index) => index % sampleRate === 0
+      );
+
+      // Calculate depth range for color mapping
+      if (sampledData.length > 0) {
         const depthValues = sampledData.map((row) => row.depth);
         const minDepth = Math.min(...depthValues);
         const maxDepth = Math.max(...depthValues);
         setDepthRange({ min: minDepth, max: maxDepth });
+      }
 
-        // Detect incidents
-        const detectedIncidents = detectIncidents(validData);
-        setIncidents(detectedIncidents);
+      // Detect incidents
+      const detectedIncidents = detectIncidents(newActualData);
+      setIncidents(detectedIncidents);
 
-        // Calculate the geographic bounds
+      // Calculate the geographic bounds
+      if (sampledData.length > 0 && newPlannedData.length > 0) {
         const actualLats = sampledData.map((row) => row.latitude);
         const actualLongs = sampledData.map((row) => row.longitude);
-        const plannedLats = missionData.waypoints.map((wp) => wp.latitude);
-        const plannedLongs = missionData.waypoints.map((wp) => wp.longitude);
+        const plannedLats = newPlannedData.map((wp) => wp.latitude);
+        const plannedLongs = newPlannedData.map((wp) => wp.longitude);
 
         const allLats = [...actualLats, ...plannedLats];
         const allLongs = [...actualLongs, ...plannedLongs];
@@ -514,17 +498,24 @@ const MissionPathWithIncidents = () => {
           minLong: minLong - longPadding,
           maxLong: maxLong + longPadding,
         });
-
-        setActualData(sampledData);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error in loadData:", err);
-        setError(`Error loading or processing data: ${err.message}`);
-        setLoading(false);
       }
-    };
 
-    loadData();
+      setActualData(sampledData);
+      setPlannedData(newPlannedData);
+      setLoading(false);
+      setError(null);
+    } catch (err) {
+      console.error("Error processing data:", err);
+      setError(`Error processing data: ${err.message}`);
+      setLoading(false);
+    }
+  };
+
+  // Initial load with sample data
+  useEffect(() => {
+    if (useSampleData) {
+      processData(SAMPLE_PATH_DATA, SAMPLE_WAYPOINTS);
+    }
   }, [useSampleData]);
 
   // Function to detect incidents in the data
@@ -916,6 +907,70 @@ const MissionPathWithIncidents = () => {
       <h2 style={styles.title}>
         Mission Path with Incidents and Planned Route
       </h2>
+
+      {/* Add file upload section */}
+      <div style={{
+        marginBottom: "20px",
+        padding: "20px",
+        backgroundColor: "#f8f9fa",
+        borderRadius: "8px",
+      }}>
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Upload Mission Travel Path (CSV):
+          </label>
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleCsvUpload}
+            style={{ display: "block" }}
+          />
+          {csvFileName && (
+            <span style={{ fontSize: "0.875rem", color: "#666" }}>
+              Loaded: {csvFileName}
+            </span>
+          )}
+        </div>
+
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Upload Mission File (JSON):
+          </label>
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleJsonUpload}
+            style={{ display: "block" }}
+          />
+          {jsonFileName && (
+            <span style={{ fontSize: "0.875rem", color: "#666" }}>
+              Loaded: {jsonFileName}
+            </span>
+          )}
+        </div>
+
+        <button
+          style={{
+            ...styles.button,
+            marginRight: "10px",
+          }}
+          onClick={() => setUseSampleData(true)}
+        >
+          Use Sample Data
+        </button>
+        <button
+          style={styles.button}
+          onClick={() => {
+            setActualData([]);
+            setPlannedData([]);
+            setCsvFileName("");
+            setJsonFileName("");
+            setUseSampleData(false);
+          }}
+        >
+          Clear Data
+        </button>
+      </div>
 
       <div style={styles.card}>
         <div style={styles.header}>
