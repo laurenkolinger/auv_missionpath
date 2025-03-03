@@ -770,8 +770,8 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath, usblPath })
                   }).join(" ")}
                   fill="none"
                   stroke="black"
-                  strokeWidth="1"
-                  opacity="0.5"
+                  strokeWidth="1.5"
+                  opacity="0.8"
                 />
                 {/* USBL points */}
                 {usblData.map((point, index) => {
