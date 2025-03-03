@@ -2,8 +2,12 @@
   // These tasks will run in order when initializing your CodeSandbox project.
   "setupTasks": [
     {
-      "name": "Installing Dependencies",
+      "name": "Install Dependencies",
       "command": "pnpm install"
+    },
+    {
+      "name": "Install date-fns",
+      "command": "pnpm install date-fns"
     }
   ],
 
@@ -28,6 +32,13 @@
     "eject": {
       "name": "eject",
       "command": "pnpm eject"
+    },
+    "mission-path": {
+      "name": "Run Mission Path Visualization",
+      "command": "pnpm start src/MissionPathWithIncidents.js",
+      "preview": {
+        "port": 3000
+      }
     }
   }
 }
