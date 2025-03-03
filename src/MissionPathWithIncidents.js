@@ -395,12 +395,12 @@ const MissionPathWithIncidents = () => {
     maxLong: 0,
   });
   const [hoveredPoint, setHoveredPoint] = useState(null);
-  const [hoveredType, setHoveredType] = useState(null); // 'actual', 'planned', or 'incident'
+  const [hoveredType, setHoveredType] = useState(null);
   const [hoveredIncident, setHoveredIncident] = useState(null);
   const [showAttitude, setShowAttitude] = useState(false);
-  const [useSampleData, setUseSampleData] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Add new state for file names
+  // File name states
   const [csvFileName, setCsvFileName] = useState("");
   const [jsonFileName, setJsonFileName] = useState("");
 
@@ -426,6 +426,11 @@ const MissionPathWithIncidents = () => {
             row.depth !== null
         );
 
+        if (validData.length === 0) {
+          setError("No valid data points found in CSV file");
+          return;
+        }
+
         processData(validData, plannedData);
       };
       reader.readAsText(file);
@@ -441,6 +446,25 @@ const MissionPathWithIncidents = () => {
       reader.onload = (e) => {
         try {
           const missionData = JSON.parse(e.target.result);
+          
+          // Verify the JSON has the required structure
+          if (!missionData.waypoints || !Array.isArray(missionData.waypoints)) {
+            setError("Invalid mission file format: missing waypoints array");
+            return;
+          }
+
+          // Verify waypoints have required fields
+          const validWaypoints = missionData.waypoints.every(wp => 
+            wp.latitude !== undefined && 
+            wp.longitude !== undefined && 
+            wp.waypoint_number !== undefined
+          );
+
+          if (!validWaypoints) {
+            setError("Invalid waypoint data: missing required fields");
+            return;
+          }
+
           processData(actualData, missionData.waypoints);
         } catch (error) {
           setError("Error parsing JSON file: " + error.message);
@@ -502,6 +526,7 @@ const MissionPathWithIncidents = () => {
 
       setActualData(sampledData);
       setPlannedData(newPlannedData);
+      setDataLoaded(true);
       setLoading(false);
       setError(null);
     } catch (err) {
@@ -510,13 +535,6 @@ const MissionPathWithIncidents = () => {
       setLoading(false);
     }
   };
-
-  // Initial load with sample data
-  useEffect(() => {
-    if (useSampleData) {
-      processData(SAMPLE_PATH_DATA, SAMPLE_WAYPOINTS);
-    }
-  }, [useSampleData]);
 
   // Function to detect incidents in the data
   const detectIncidents = (data) => {
@@ -672,11 +690,6 @@ const MissionPathWithIncidents = () => {
     setShowAttitude(!showAttitude);
   };
 
-  // Toggle between sample and real data
-  const toggleDataSource = () => {
-    setUseSampleData(!useSampleData);
-  };
-
   if (loading) {
     return (
       <div
@@ -690,19 +703,6 @@ const MissionPathWithIncidents = () => {
         }}
       >
         <div>Loading mission data...</div>
-        <button
-          onClick={toggleDataSource}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#4285f4",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Use {useSampleData ? "Real" : "Sample"} Data
-        </button>
       </div>
     );
   }
@@ -719,20 +719,6 @@ const MissionPathWithIncidents = () => {
         }}
       >
         <div>{error}</div>
-        <button
-          onClick={toggleDataSource}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#4285f4",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            alignSelf: "flex-start",
-          }}
-        >
-          Use {useSampleData ? "Real" : "Sample"} Data
-        </button>
       </div>
     );
   }
@@ -904,11 +890,9 @@ const MissionPathWithIncidents = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>
-        Mission Path with Incidents and Planned Route
-      </h2>
+      <h2 style={styles.title}>Mission Path with Incidents and Planned Route</h2>
 
-      {/* Add file upload section */}
+      {/* File upload section */}
       <div style={{
         marginBottom: "20px",
         padding: "20px",
@@ -950,462 +934,476 @@ const MissionPathWithIncidents = () => {
         </div>
 
         <button
-          style={{
-            ...styles.button,
-            marginRight: "10px",
-          }}
-          onClick={() => setUseSampleData(true)}
-        >
-          Use Sample Data
-        </button>
-        <button
           style={styles.button}
           onClick={() => {
             setActualData([]);
             setPlannedData([]);
             setCsvFileName("");
             setJsonFileName("");
-            setUseSampleData(false);
+            setDataLoaded(false);
+            setError(null);
           }}
         >
           Clear Data
         </button>
       </div>
 
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <div style={styles.buttonContainer}>
-            <button style={styles.button} onClick={toggleAttitude}>
-              {showAttitude ? "Hide Attitude" : "Show Attitude"}
-            </button>
-            <button style={styles.button} onClick={toggleDataSource}>
-              Using {useSampleData ? "Sample" : "Loaded"} Data
-            </button>
-          </div>
-          <div style={styles.legendContainer}>
-            <div style={styles.legendItem}>
-              <div
-                style={{ ...styles.legendDot, backgroundColor: "#3b82f6" }}
-              ></div>
-              <span>Actual Path</span>
-            </div>
-            <div style={styles.legendItem}>
-              <div style={styles.legendLine}></div>
-              <span>Planned Route</span>
-            </div>
-            <div style={styles.legendItem}>
-              <div
-                style={{ ...styles.legendDot, backgroundColor: "#ef4444" }}
-              ></div>
-              <span>Incidents ({incidents.length})</span>
-            </div>
-          </div>
+      {error && (
+        <div style={{
+          padding: "12px",
+          backgroundColor: "#fee2e2",
+          color: "#dc2626",
+          borderRadius: "4px",
+          marginBottom: "16px",
+        }}>
+          {error}
         </div>
+      )}
 
-        <svg
-          width="100%"
-          height={svgHeight}
-          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          style={styles.svgContainer}
-        >
-          {/* Draw planned path as dotted line */}
-          <path
-            d={plannedPoints
-              .map((point, i) => `${i === 0 ? "M" : "L"} ${point.x},${point.y}`)
-              .join(" ")}
-            fill="none"
-            stroke="purple"
-            strokeWidth="2"
-            strokeDasharray="5,5"
-            strokeOpacity="0.8"
-          />
+      {!dataLoaded && !loading && (
+        <div style={{
+          padding: "20px",
+          textAlign: "center",
+          backgroundColor: "#f3f4f6",
+          borderRadius: "8px",
+        }}>
+          Please upload both a mission travel path CSV file and a mission JSON file to view the visualization.
+        </div>
+      )}
 
-          {/* Draw actual path lines colored by depth */}
-          {actualPoints.map((point, index) => {
-            if (index === 0) return null;
-            const prevPoint = actualPoints[index - 1];
-            return (
-              <line
-                key={`line-${index}`}
-                x1={prevPoint.x}
-                y1={prevPoint.y}
-                x2={point.x}
-                y2={point.y}
-                stroke={getColorForDepth(point.depth)}
-                strokeWidth="2"
-              />
-            );
-          })}
+      {loading && (
+        <div style={{
+          padding: "20px",
+          textAlign: "center",
+        }}>
+          Loading mission data...
+        </div>
+      )}
 
-          {/* Draw actual path points */}
-          {actualPoints.map((point, index) => (
-            <circle
-              key={`actual-point-${index}`}
-              cx={point.x}
-              cy={point.y}
-              r="2"
-              fill={getColorForDepth(point.depth)}
-              stroke={
-                hoveredPoint === index && hoveredType === "actual"
-                  ? "#000"
-                  : "none"
-              }
-              strokeWidth="1"
-              onMouseEnter={() => {
-                setHoveredPoint(index);
-                setHoveredType("actual");
-              }}
-              onMouseLeave={() => {
-                setHoveredPoint(null);
-                setHoveredType(null);
-              }}
+      {dataLoaded && !loading && (
+        <div style={styles.card}>
+          <div style={styles.header}>
+            <div style={styles.buttonContainer}>
+              <button style={styles.button} onClick={toggleAttitude}>
+                {showAttitude ? "Hide Attitude" : "Show Attitude"}
+              </button>
+            </div>
+            <div style={styles.legendContainer}>
+              <div style={styles.legendItem}>
+                <div
+                  style={{ ...styles.legendDot, backgroundColor: "#3b82f6" }}
+                ></div>
+                <span>Actual Path</span>
+              </div>
+              <div style={styles.legendItem}>
+                <div style={styles.legendLine}></div>
+                <span>Planned Route</span>
+              </div>
+              <div style={styles.legendItem}>
+                <div
+                  style={{ ...styles.legendDot, backgroundColor: "#ef4444" }}
+                ></div>
+                <span>Incidents ({incidents.length})</span>
+              </div>
+            </div>
+          </div>
+
+          <svg
+            width="100%"
+            height={svgHeight}
+            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+            style={styles.svgContainer}
+          >
+            {/* Draw planned path as dotted line */}
+            <path
+              d={plannedPoints
+                .map((point, i) => `${i === 0 ? "M" : "L"} ${point.x},${point.y}`)
+                .join(" ")}
+              fill="none"
+              stroke="purple"
+              strokeWidth="2"
+              strokeDasharray="5,5"
+              strokeOpacity="0.8"
             />
-          ))}
 
-          {/* Draw planned waypoints */}
-          {plannedPoints.map((point, index) => (
-            <React.Fragment key={`planned-waypoint-${index}`}>
+            {/* Draw actual path lines colored by depth */}
+            {actualPoints.map((point, index) => {
+              if (index === 0) return null;
+              const prevPoint = actualPoints[index - 1];
+              return (
+                <line
+                  key={`line-${index}`}
+                  x1={prevPoint.x}
+                  y1={prevPoint.y}
+                  x2={point.x}
+                  y2={point.y}
+                  stroke={getColorForDepth(point.depth)}
+                  strokeWidth="2"
+                />
+              );
+            })}
+
+            {/* Draw actual path points */}
+            {actualPoints.map((point, index) => (
               <circle
+                key={`actual-point-${index}`}
                 cx={point.x}
                 cy={point.y}
-                r="4"
-                fill="purple"
-                fillOpacity="0.6"
+                r="2"
+                fill={getColorForDepth(point.depth)}
                 stroke={
-                  hoveredPoint === index && hoveredType === "planned"
+                  hoveredPoint === index && hoveredType === "actual"
                     ? "#000"
                     : "none"
                 }
                 strokeWidth="1"
                 onMouseEnter={() => {
                   setHoveredPoint(index);
-                  setHoveredType("planned");
+                  setHoveredType("actual");
                 }}
                 onMouseLeave={() => {
                   setHoveredPoint(null);
                   setHoveredType(null);
                 }}
               />
-              <text
-                x={point.x + 5}
-                y={point.y - 5}
-                fontSize="10"
-                fill="purple"
-                fontWeight="bold"
-                opacity="0.8"
-              >
-                {index + 1}
-              </text>
-            </React.Fragment>
-          ))}
+            ))}
 
-          {/* Draw incident markers */}
-          {incidentMarkers.map((marker, index) => (
-            <g
-              key={`incident-${index}`}
-              onMouseEnter={() => {
-                setHoveredIncident(index);
-              }}
-              onMouseLeave={() => {
-                setHoveredIncident(null);
-              }}
-            >
-              <circle
-                cx={marker.x}
-                cy={marker.y}
-                r="8"
-                fill="red"
-                fillOpacity="0.7"
-                stroke="white"
-                strokeWidth="1"
-              />
-              <text
-                x={marker.x}
-                y={marker.y + 4}
-                fontSize="10"
-                fill="white"
-                textAnchor="middle"
-                fontWeight="bold"
-              >
-                {marker.incident.count > 9 ? "!" : marker.incident.count}
-              </text>
-            </g>
-          ))}
-
-          {/* Show attitude indicators if enabled */}
-          {showAttitude &&
-            actualPoints
-              .filter((_, i) => i % 20 === 0)
-              .map((point, index) => {
-                const originalPoint = point.original;
-                // Only show if we have valid attitude data
-                if (
-                  originalPoint.roll === undefined ||
-                  originalPoint.pitch === undefined
-                )
-                  return null;
-
-                // Convert roll and pitch to radians
-                const rollRad = (originalPoint.roll * Math.PI) / 180;
-                const pitchRad = (originalPoint.pitch * Math.PI) / 180;
-
-                // Calculate line endpoints for roll and pitch indicators
-                const rollLength = 10;
-                const pitchLength = 10;
-
-                return (
-                  <g key={`attitude-${index}`}>
-                    {/* Roll indicator */}
-                    <line
-                      x1={point.x}
-                      y1={point.y}
-                      x2={point.x + rollLength * Math.sin(rollRad)}
-                      y2={point.y + rollLength * Math.cos(rollRad)}
-                      stroke="orange"
-                      strokeWidth="1"
-                    />
-                    {/* Pitch indicator */}
-                    <line
-                      x1={point.x}
-                      y1={point.y}
-                      x2={point.x + pitchLength * Math.sin(pitchRad)}
-                      y2={point.y - pitchLength * Math.cos(pitchRad)}
-                      stroke="green"
-                      strokeWidth="1"
-                    />
-                  </g>
-                );
-              })}
-
-          {/* Show tooltip for hovered actual point */}
-          {hoveredPoint !== null &&
-            hoveredType === "actual" &&
-            actualPoints[hoveredPoint] && (
-              <g>
-                <rect
-                  x={actualPoints[hoveredPoint].x + 10}
-                  y={actualPoints[hoveredPoint].y - 45}
-                  width="160"
-                  height="60"
-                  fill="rgba(0, 0, 0, 0.8)"
-                  rx="5"
-                />
-                <text
-                  x={actualPoints[hoveredPoint].x + 15}
-                  y={actualPoints[hoveredPoint].y - 30}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Depth: {actualPoints[hoveredPoint].depth.toFixed(2)}m
-                </text>
-                <text
-                  x={actualPoints[hoveredPoint].x + 15}
-                  y={actualPoints[hoveredPoint].y - 15}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Position:{" "}
-                  {actualPoints[hoveredPoint].original.latitude.toFixed(6)},{" "}
-                  {actualPoints[hoveredPoint].original.longitude.toFixed(6)}
-                </text>
-                <text
-                  x={actualPoints[hoveredPoint].x + 15}
-                  y={actualPoints[hoveredPoint].y}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Roll: {actualPoints[hoveredPoint].original.roll?.toFixed(2)}°
-                  Pitch: {actualPoints[hoveredPoint].original.pitch?.toFixed(2)}
-                  °
-                </text>
-              </g>
-            )}
-
-          {/* Show tooltip for hovered planned point */}
-          {hoveredPoint !== null &&
-            hoveredType === "planned" &&
-            plannedPoints[hoveredPoint] && (
-              <g>
-                <rect
-                  x={plannedPoints[hoveredPoint].x + 10}
-                  y={plannedPoints[hoveredPoint].y - 60}
-                  width="200"
-                  height="55"
-                  fill="rgba(0, 0, 0, 0.8)"
-                  rx="5"
-                />
-                <text
-                  x={plannedPoints[hoveredPoint].x + 15}
-                  y={plannedPoints[hoveredPoint].y - 40}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Waypoint:{" "}
-                  {plannedPoints[hoveredPoint].original.waypoint_number}
-                </text>
-                <text
-                  x={plannedPoints[hoveredPoint].x + 15}
-                  y={plannedPoints[hoveredPoint].y - 25}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Position:{" "}
-                  {plannedPoints[hoveredPoint].original.latitude.toFixed(6)},{" "}
-                  {plannedPoints[hoveredPoint].original.longitude.toFixed(6)}
-                </text>
-                <text
-                  x={plannedPoints[hoveredPoint].x + 15}
-                  y={plannedPoints[hoveredPoint].y - 10}
-                  fill="white"
-                  fontSize="12"
-                >
-                  Type:{" "}
-                  {
-                    plannedPoints[hoveredPoint].original.additional_data
-                      .transect_type
+            {/* Draw planned waypoints */}
+            {plannedPoints.map((point, index) => (
+              <React.Fragment key={`planned-waypoint-${index}`}>
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="4"
+                  fill="purple"
+                  fillOpacity="0.6"
+                  stroke={
+                    hoveredPoint === index && hoveredType === "planned"
+                      ? "#000"
+                      : "none"
                   }
+                  strokeWidth="1"
+                  onMouseEnter={() => {
+                    setHoveredPoint(index);
+                    setHoveredType("planned");
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredPoint(null);
+                    setHoveredType(null);
+                  }}
+                />
+                <text
+                  x={point.x + 5}
+                  y={point.y - 5}
+                  fontSize="10"
+                  fill="purple"
+                  fontWeight="bold"
+                  opacity="0.8"
+                >
+                  {index + 1}
+                </text>
+              </React.Fragment>
+            ))}
+
+            {/* Draw incident markers */}
+            {incidentMarkers.map((marker, index) => (
+              <g
+                key={`incident-${index}`}
+                onMouseEnter={() => {
+                  setHoveredIncident(index);
+                }}
+                onMouseLeave={() => {
+                  setHoveredIncident(null);
+                }}
+              >
+                <circle
+                  cx={marker.x}
+                  cy={marker.y}
+                  r="8"
+                  fill="red"
+                  fillOpacity="0.7"
+                  stroke="white"
+                  strokeWidth="1"
+                />
+                <text
+                  x={marker.x}
+                  y={marker.y + 4}
+                  fontSize="10"
+                  fill="white"
+                  textAnchor="middle"
+                  fontWeight="bold"
+                >
+                  {marker.incident.count > 9 ? "!" : marker.incident.count}
                 </text>
               </g>
-            )}
+            ))}
 
-          {/* Show tooltip for hovered incident */}
-          {hoveredIncident !== null && incidentMarkers[hoveredIncident] && (
-            <g>
-              <rect
-                x={incidentMarkers[hoveredIncident].x + 10}
-                y={incidentMarkers[hoveredIncident].y - 80}
-                width="220"
-                height={Math.min(
-                  80,
-                  25 +
-                    incidentMarkers[hoveredIncident].incident.allReasons
-                      .length *
-                      15
-                )}
-                fill="rgba(255, 0, 0, 0.8)"
-                rx="5"
-              />
-              <text
-                x={incidentMarkers[hoveredIncident].x + 15}
-                y={incidentMarkers[hoveredIncident].y - 60}
-                fill="white"
-                fontSize="12"
-                fontWeight="bold"
-              >
-                INCIDENT ({incidentMarkers[hoveredIncident].incident.count}{" "}
-                events)
-              </text>
-              {incidentMarkers[hoveredIncident].incident.allReasons
-                .slice(0, 3)
-                .map((reason, i) => (
+            {/* Show attitude indicators if enabled */}
+            {showAttitude &&
+              actualPoints
+                .filter((_, i) => i % 20 === 0)
+                .map((point, index) => {
+                  const originalPoint = point.original;
+                  // Only show if we have valid attitude data
+                  if (
+                    originalPoint.roll === undefined ||
+                    originalPoint.pitch === undefined
+                  )
+                    return null;
+
+                  // Convert roll and pitch to radians
+                  const rollRad = (originalPoint.roll * Math.PI) / 180;
+                  const pitchRad = (originalPoint.pitch * Math.PI) / 180;
+
+                  // Calculate line endpoints for roll and pitch indicators
+                  const rollLength = 10;
+                  const pitchLength = 10;
+
+                  return (
+                    <g key={`attitude-${index}`}>
+                      {/* Roll indicator */}
+                      <line
+                        x1={point.x}
+                        y1={point.y}
+                        x2={point.x + rollLength * Math.sin(rollRad)}
+                        y2={point.y + rollLength * Math.cos(rollRad)}
+                        stroke="orange"
+                        strokeWidth="1"
+                      />
+                      {/* Pitch indicator */}
+                      <line
+                        x1={point.x}
+                        y1={point.y}
+                        x2={point.x + pitchLength * Math.sin(pitchRad)}
+                        y2={point.y - pitchLength * Math.cos(pitchRad)}
+                        stroke="green"
+                        strokeWidth="1"
+                      />
+                    </g>
+                  );
+                })}
+
+            {/* Show tooltip for hovered actual point */}
+            {hoveredPoint !== null &&
+              hoveredType === "actual" &&
+              actualPoints[hoveredPoint] && (
+                <g>
+                  <rect
+                    x={actualPoints[hoveredPoint].x + 10}
+                    y={actualPoints[hoveredPoint].y - 45}
+                    width="160"
+                    height="60"
+                    fill="rgba(0, 0, 0, 0.8)"
+                    rx="5"
+                  />
                   <text
-                    key={`reason-${i}`}
-                    x={incidentMarkers[hoveredIncident].x + 15}
-                    y={incidentMarkers[hoveredIncident].y - 45 + i * 15}
+                    x={actualPoints[hoveredPoint].x + 15}
+                    y={actualPoints[hoveredPoint].y - 30}
                     fill="white"
                     fontSize="12"
                   >
-                    • {reason}
+                    Depth: {actualPoints[hoveredPoint].depth.toFixed(2)}m
                   </text>
-                ))}
-            </g>
-          )}
-        </svg>
+                  <text
+                    x={actualPoints[hoveredPoint].x + 15}
+                    y={actualPoints[hoveredPoint].y - 15}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Position:{" "}
+                    {actualPoints[hoveredPoint].original.latitude.toFixed(6)},{" "}
+                    {actualPoints[hoveredPoint].original.longitude.toFixed(6)}
+                  </text>
+                  <text
+                    x={actualPoints[hoveredPoint].x + 15}
+                    y={actualPoints[hoveredPoint].y}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Roll: {actualPoints[hoveredPoint].original.roll?.toFixed(2)}°
+                    Pitch: {actualPoints[hoveredPoint].original.pitch?.toFixed(2)}
+                    °
+                  </text>
+                </g>
+              )}
 
-        {/* Depth legend */}
-        <div style={styles.depthLegend}>
-          <h3 style={styles.legendTitle}>Depth Scale</h3>
-          <div style={styles.depthBar}></div>
-          <div style={styles.depthLabels}>
-            <span style={{ fontSize: "0.875rem" }}>
-              {depthRange.min.toFixed(2)} m (Shallow)
-            </span>
-            <span style={{ fontSize: "0.875rem" }}>
-              {((depthRange.min + depthRange.max) / 2).toFixed(2)} m
-            </span>
-            <span style={{ fontSize: "0.875rem" }}>
-              {depthRange.max.toFixed(2)} m (Deep)
-            </span>
-          </div>
-        </div>
+            {/* Show tooltip for hovered planned point */}
+            {hoveredPoint !== null &&
+              hoveredType === "planned" &&
+              plannedPoints[hoveredPoint] && (
+                <g>
+                  <rect
+                    x={plannedPoints[hoveredPoint].x + 10}
+                    y={plannedPoints[hoveredPoint].y - 60}
+                    width="200"
+                    height="55"
+                    fill="rgba(0, 0, 0, 0.8)"
+                    rx="5"
+                  />
+                  <text
+                    x={plannedPoints[hoveredPoint].x + 15}
+                    y={plannedPoints[hoveredPoint].y - 40}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Waypoint:{" "}
+                    {plannedPoints[hoveredPoint].original.waypoint_number}
+                  </text>
+                  <text
+                    x={plannedPoints[hoveredPoint].x + 15}
+                    y={plannedPoints[hoveredPoint].y - 25}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Position:{" "}
+                    {plannedPoints[hoveredPoint].original.latitude.toFixed(6)},{" "}
+                    {plannedPoints[hoveredPoint].original.longitude.toFixed(6)}
+                  </text>
+                  <text
+                    x={plannedPoints[hoveredPoint].x + 15}
+                    y={plannedPoints[hoveredPoint].y - 10}
+                    fill="white"
+                    fontSize="12"
+                  >
+                    Type:{" "}
+                    {
+                      plannedPoints[hoveredPoint].original.additional_data
+                        .transect_type
+                    }
+                  </text>
+                </g>
+              )}
 
-        {/* Mission statistics and incident summary */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statsCard("#eff6ff")}>
-            <h3 style={styles.statsTitle}>Actual Path</h3>
-            <p>
-              <strong>Data Points:</strong> {actualData.length}{" "}
-              {useSampleData ? "(sample)" : "(sampled)"}
-            </p>
-            <p>
-              <strong>Depth Range:</strong> {depthRange.min.toFixed(2)} -{" "}
-              {depthRange.max.toFixed(2)} m
-            </p>
-          </div>
-
-          <div style={styles.statsCard("#f5f3ff")}>
-            <h3 style={styles.statsTitle}>Planned Route</h3>
-            <p>
-              <strong>Waypoints:</strong> {plannedData.length}
-            </p>
-            <p>
-              <strong>Mission Name:</strong>{" "}
-              {plannedData[0]?.additional_data?.mission_name || "Marden1"}
-            </p>
-          </div>
-
-          <div style={styles.statsCard("#fee2e2")}>
-            <h3 style={styles.statsTitle}>Incidents</h3>
-            <p>
-              <strong>Total Incidents:</strong> {incidents.length} clusters
-            </p>
-            <p>
-              <strong>Main Issue:</strong>{" "}
-              {incidents.length > 0 ? incidents[0].primaryReason : "None"}
-            </p>
-          </div>
-        </div>
-
-        {/* Incident details */}
-        {incidents.length > 0 && (
-          <div style={styles.incidentTable}>
-            <h3 style={styles.statsTitle}>Incident Details</h3>
-            <div style={{ maxHeight: "160px", overflow: "auto" }}>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.tableHead}>Location</th>
-                    <th style={styles.tableHead}>Events</th>
-                    <th style={styles.tableHead}>Primary Issue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incidents.map((incident, i) => (
-                    <tr
-                      key={`incident-row-${i}`}
-                      style={styles.tableRow(i % 2 === 0)}
+            {/* Show tooltip for hovered incident */}
+            {hoveredIncident !== null && incidentMarkers[hoveredIncident] && (
+              <g>
+                <rect
+                  x={incidentMarkers[hoveredIncident].x + 10}
+                  y={incidentMarkers[hoveredIncident].y - 80}
+                  width="220"
+                  height={Math.min(
+                    80,
+                    25 +
+                      incidentMarkers[hoveredIncident].incident.allReasons
+                        .length *
+                        15
+                  )}
+                  fill="rgba(255, 0, 0, 0.8)"
+                  rx="5"
+                />
+                <text
+                  x={incidentMarkers[hoveredIncident].x + 15}
+                  y={incidentMarkers[hoveredIncident].y - 60}
+                  fill="white"
+                  fontSize="12"
+                  fontWeight="bold"
+                >
+                  INCIDENT ({incidentMarkers[hoveredIncident].incident.count}{" "}
+                  events)
+                </text>
+                {incidentMarkers[hoveredIncident].incident.allReasons
+                  .slice(0, 3)
+                  .map((reason, i) => (
+                    <text
+                      key={`reason-${i}`}
+                      x={incidentMarkers[hoveredIncident].x + 15}
+                      y={incidentMarkers[hoveredIncident].y - 45 + i * 15}
+                      fill="white"
+                      fontSize="12"
                     >
-                      <td style={styles.tableCell}>
-                        {incident.latitude.toFixed(6)},{" "}
-                        {incident.longitude.toFixed(6)}
-                      </td>
-                      <td style={styles.tableCell}>{incident.count}</td>
-                      <td style={styles.tableCell}>{incident.primaryReason}</td>
-                    </tr>
+                      • {reason}
+                    </text>
                   ))}
-                </tbody>
-              </table>
+              </g>
+            )}
+          </svg>
+
+          {/* Depth legend */}
+          <div style={styles.depthLegend}>
+            <h3 style={styles.legendTitle}>Depth Scale</h3>
+            <div style={styles.depthBar}></div>
+            <div style={styles.depthLabels}>
+              <span style={{ fontSize: "0.875rem" }}>
+                {depthRange.min.toFixed(2)} m (Shallow)
+              </span>
+              <span style={{ fontSize: "0.875rem" }}>
+                {((depthRange.min + depthRange.max) / 2).toFixed(2)} m
+              </span>
+              <span style={{ fontSize: "0.875rem" }}>
+                {depthRange.max.toFixed(2)} m (Deep)
+              </span>
             </div>
           </div>
-        )}
 
-        <div style={styles.footer}>
-          Hover over points to see detailed information. The actual path is
-          colored from light blue (shallow) to dark blue (deep), while the
-          planned route is shown as a purple dotted line with numbered
-          waypoints. Red circles indicate incident clusters.
+          {/* Mission statistics and incident summary */}
+          <div style={styles.statsGrid}>
+            <div style={styles.statsCard("#eff6ff")}>
+              <h3 style={styles.statsTitle}>Actual Path</h3>
+              <p>
+                <strong>Data Points:</strong> {actualData.length}
+              </p>
+              <p>
+                <strong>Depth Range:</strong> {depthRange.min.toFixed(2)} -{" "}
+                {depthRange.max.toFixed(2)} m
+              </p>
+            </div>
+
+            <div style={styles.statsCard("#f5f3ff")}>
+              <h3 style={styles.statsTitle}>Planned Route</h3>
+              <p>
+                <strong>Waypoints:</strong> {plannedData.length}
+              </p>
+            </div>
+
+            <div style={styles.statsCard("#fee2e2")}>
+              <h3 style={styles.statsTitle}>Incidents</h3>
+              <p>
+                <strong>Total Incidents:</strong> {incidents.length} clusters
+              </p>
+            </div>
+          </div>
+
+          {/* Incident details */}
+          {incidents.length > 0 && (
+            <div style={styles.incidentTable}>
+              <h3 style={styles.statsTitle}>Incident Details</h3>
+              <div style={{ maxHeight: "160px", overflow: "auto" }}>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.tableHead}>Location</th>
+                      <th style={styles.tableHead}>Events</th>
+                      <th style={styles.tableHead}>Primary Issue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {incidents.map((incident, i) => (
+                      <tr
+                        key={`incident-row-${i}`}
+                        style={styles.tableRow(i % 2 === 0)}
+                      >
+                        <td style={styles.tableCell}>
+                          {incident.latitude.toFixed(6)},{" "}
+                          {incident.longitude.toFixed(6)}
+                        </td>
+                        <td style={styles.tableCell}>{incident.count}</td>
+                        <td style={styles.tableCell}>{incident.primaryReason}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <div style={styles.footer}>
+            Hover over points to see detailed information. The actual path is
+            colored from light blue (shallow) to dark blue (deep), while the
+            planned route is shown as a purple dotted line with numbered
+            waypoints. Red circles indicate incident clusters.
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
