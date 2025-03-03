@@ -18,6 +18,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [hoveredType, setHoveredType] = useState(null);
   const [hoveredIncident, setHoveredIncident] = useState(null);
+  const [showIncidents, setShowIncidents] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -116,37 +117,29 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
 
   // Function to detect incidents in the data
   const detectIncidents = (data) => {
-    // Define thresholds for what we consider abnormal
     const thresholds = {
-      roll: 45, // degrees - significant roll
-      pitch: 45, // degrees - significant pitch
-      depthChange: 1.0, // meters per second - rapid depth change
-      errorState: 0, // any non-zero error state
-      minDistanceToOceanFloor: 0.5, // meters - potential collision with ocean floor
+      roll: 45,
+      pitch: 45,
+      depthChange: 1.0,
+      errorState: 0,
+      minDistanceToOceanFloor: 0.5,
     };
 
-    // Find incidents
     const foundIncidents = [];
     for (let i = 0; i < data.length; i++) {
       const point = data[i];
-
+      
       // Skip points with missing critical data
-      if (
-        !point.timestamp_ros ||
-        point.roll === undefined ||
-        point.pitch === undefined
-      ) {
-        continue;
-      }
+      if (!point.timestamp_ros) continue;
 
       const reasons = [];
 
-      // Check for extreme attitude values
-      if (Math.abs(point.roll) > thresholds.roll) {
+      // Check for extreme attitude values if they exist
+      if (point.roll !== undefined && Math.abs(point.roll) > thresholds.roll) {
         reasons.push(`Extreme roll: ${point.roll.toFixed(2)}°`);
       }
 
-      if (Math.abs(point.pitch) > thresholds.pitch) {
+      if (point.pitch !== undefined && Math.abs(point.pitch) > thresholds.pitch) {
         reasons.push(`Extreme pitch: ${point.pitch.toFixed(2)}°`);
       }
 
@@ -160,9 +153,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
         point.distance_to_ocean_floor !== undefined &&
         point.distance_to_ocean_floor < thresholds.minDistanceToOceanFloor
       ) {
-        reasons.push(
-          `Near floor: ${point.distance_to_ocean_floor.toFixed(2)}m`
-        );
+        reasons.push(`Near floor: ${point.distance_to_ocean_floor.toFixed(2)}m`);
       }
 
       // If we found issues, add to incidents
@@ -183,7 +174,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
       }
     }
 
-    // Group nearby incidents by time (within 10 seconds)
+    // Group nearby incidents by time (within 5 seconds instead of 10)
     const groupedIncidents = [];
     const processedIndices = new Set();
 
@@ -199,36 +190,29 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
         if (i === j || processedIndices.has(j)) continue;
 
         const otherIncident = foundIncidents[j];
-        const timeDiff = Math.abs(
-          currentIncident.timestamp - otherIncident.timestamp
-        );
+        const timeDiff = Math.abs(currentIncident.timestamp - otherIncident.timestamp);
 
-        // If they're within 10 seconds, consider them part of the same event
-        if (timeDiff < 10) {
+        if (timeDiff < 5) { // Reduced from 10 to 5 seconds for tighter clustering
           cluster.push(otherIncident);
           processedIndices.add(j);
         }
       }
 
       // Calculate average position for the cluster
-      const avgLat =
-        cluster.reduce((sum, inc) => sum + inc.latitude, 0) / cluster.length;
-      const avgLng =
-        cluster.reduce((sum, inc) => sum + inc.longitude, 0) / cluster.length;
+      const avgLat = cluster.reduce((sum, inc) => sum + inc.latitude, 0) / cluster.length;
+      const avgLng = cluster.reduce((sum, inc) => sum + inc.longitude, 0) / cluster.length;
 
-      // Get the most common reasons for the incident
+      // Get the most common reasons
       const allReasons = cluster.flatMap((inc) => inc.reasons);
       const reasonCounts = {};
       allReasons.forEach((reason) => {
         reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
       });
 
-      // Sort by count
       const sortedReasons = Object.entries(reasonCounts)
         .sort((a, b) => b[1] - a[1])
         .map(([reason]) => reason);
 
-      // Add the cluster to our grouped incidents
       groupedIncidents.push({
         latitude: avgLat,
         longitude: avgLng,
@@ -489,6 +473,14 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
       {!loading && !error && (
         <div style={styles.card}>
           <div style={styles.header}>
+            <div style={styles.buttonContainer}>
+              <button 
+                style={styles.button} 
+                onClick={() => setShowIncidents(!showIncidents)}
+              >
+                {showIncidents ? "Hide Incidents" : "Show Incidents"}
+              </button>
+            </div>
             <div style={styles.legendContainer}>
               <div style={styles.legendItem}>
                 <div
@@ -500,12 +492,14 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                 <div style={styles.legendLine}></div>
                 <span>Planned Route</span>
               </div>
-              <div style={styles.legendItem}>
-                <div
-                  style={{ ...styles.legendDot, backgroundColor: "#ef4444" }}
-                ></div>
-                <span>Incidents ({incidents.length})</span>
-              </div>
+              {showIncidents && (
+                <div style={styles.legendItem}>
+                  <div
+                    style={{ ...styles.legendDot, backgroundColor: "#ef4444" }}
+                  ></div>
+                  <span>Incidents ({incidents.length})</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -606,8 +600,8 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               </React.Fragment>
             ))}
 
-            {/* Draw incident markers */}
-            {incidentMarkers.map((marker, index) => (
+            {/* Draw incident markers if enabled */}
+            {showIncidents && incidentMarkers.map((marker, index) => (
               <g
                 key={`incident-${index}`}
                 onMouseEnter={() => {
@@ -639,14 +633,14 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               </g>
             ))}
 
-            {/* Draw attitude indicators */}
+            {/* Draw attitude indicators - show more frequently */}
             {actualPoints.map((point, index) => {
               const originalPoint = point.original;
-              // Only show if we have valid attitude data
+              // Show every 5th point instead of 10th
               if (
                 originalPoint.roll === undefined ||
                 originalPoint.pitch === undefined ||
-                index % 10 !== 0  // Show every 10th point to avoid clutter
+                index % 5 !== 0
               )
                 return null;
 
@@ -654,9 +648,9 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               const rollRad = (originalPoint.roll * Math.PI) / 180;
               const pitchRad = (originalPoint.pitch * Math.PI) / 180;
 
-              // Calculate line endpoints for roll and pitch indicators
-              const rollLength = 15;
-              const pitchLength = 15;
+              // Increase line length for better visibility
+              const rollLength = 20;
+              const pitchLength = 20;
 
               return (
                 <g key={`attitude-${index}`}>
