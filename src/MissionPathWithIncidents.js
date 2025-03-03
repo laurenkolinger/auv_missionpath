@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import _ from "lodash";
+import { format } from 'date-fns';
+import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
 
 const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [actualData, setActualData] = useState([]);
@@ -18,12 +20,12 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [hoveredType, setHoveredType] = useState(null);
   const [hoveredIncident, setHoveredIncident] = useState(null);
-  const [showIncidents, setShowIncidents] = useState(true);
+  const [showIncidents, setShowIncidents] = useState(false);
   const [missionName, setMissionName] = useState("");
   const [timeRange, setTimeRange] = useState({ start: "", end: "" });
 
   // New state variables for data toggles
-  const [showAttitudeIndicators, setShowAttitudeIndicators] = useState(true);
+  const [showAttitudeIndicators, setShowAttitudeIndicators] = useState(false);
 
   // State for ranges of continuous variables
   const [velocityRange, setVelocityRange] = useState({ min: 0, max: 0 });
@@ -36,6 +38,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const [showModePoints, setShowModePoints] = useState(false);
   const [showBatteryPoints, setShowBatteryPoints] = useState(false);
   const [showAltimeterPoints, setShowAltimeterPoints] = useState(false);
+  const [showBasePoints, setShowBasePoints] = useState(true);
 
   // Color scales for discrete values
   const modeColors = {
@@ -64,6 +67,29 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
     const { min, max } = altimeterRange;
     const normalizedAlt = (alt - min) / (max - min);
     return `hsl(280, ${normalizedAlt * 100}%, 50%)`; // Purple gradient
+  };
+
+  // Replace the formatTimestampSys function with this version
+  const formatTimestampSys = (timestamp) => {
+    // Parse the timestamp string (YYYYMMDDHHmmSS.ffffff)
+    const year = parseInt(timestamp.substring(0, 4));
+    const month = parseInt(timestamp.substring(4, 6)) - 1;
+    const day = parseInt(timestamp.substring(6, 8));
+    const hour = parseInt(timestamp.substring(8, 10));
+    const minute = parseInt(timestamp.substring(10, 12));
+    const second = parseInt(timestamp.substring(12, 14));
+    
+    // Create UTC date
+    const utcDate = new Date(Date.UTC(year, month, day, hour, minute, second));
+    
+    // Convert to AST (UTC-4)
+    const astDate = new Date(utcDate.getTime() - (4 * 60 * 60 * 1000));
+    
+    // Format the date
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const pad = (num) => String(num).padStart(2, '0');
+    
+    return `${pad(astDate.getUTCDate())} ${months[astDate.getUTCMonth()]} ${astDate.getUTCFullYear()} ${pad(astDate.getUTCHours())}:${pad(astDate.getUTCMinutes())}:${pad(astDate.getUTCSeconds())}`;
   };
 
   useEffect(() => {
@@ -553,7 +579,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
         <br />
         {timeRange.start && timeRange.end && (
           <span style={{ fontSize: "1rem", color: "#64748b" }}>
-            {`${timeRange.start.substring(0, 8)}T${timeRange.start.substring(8, 14)} to ${timeRange.end.substring(0, 8)}T${timeRange.end.substring(8, 14)}`}
+            {formatTimestampSys(timeRange.start)} - {formatTimestampSys(timeRange.end)} AST
           </span>
         )}
       </h2>
@@ -652,6 +678,16 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
             >
               {showAltimeterPoints ? "Hide Altimeter Points" : "Show Altimeter Points"}
             </button>
+            <button 
+              style={{
+                ...styles.button,
+                backgroundColor: showBasePoints ? "#3b82f6" : "#e2e8f0",
+                color: showBasePoints ? "white" : "#64748b",
+              }}
+              onClick={() => setShowBasePoints(!showBasePoints)}
+            >
+              {showBasePoints ? "Hide Base Points" : "Show Base Points"}
+            </button>
           </div>
 
           {/* SVG plot */}
@@ -691,11 +727,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                   r="4"
                   fill="purple"
                   fillOpacity="0.6"
-                  stroke={
-                    hoveredPoint === index && hoveredType === "planned"
-                      ? "#000"
-                      : "none"
-                  }
+                  stroke={hoveredPoint === index && hoveredType === "planned" ? "#000" : "none"}
                   strokeWidth="1"
                   onMouseEnter={() => {
                     setHoveredPoint(index);
@@ -717,6 +749,28 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                   {index + 1}
                 </text>
               </React.Fragment>
+            ))}
+
+            {/* Base black points */}
+            {showBasePoints && actualPoints.map((point, index) => (
+              <circle
+                key={`base-point-${index}`}
+                cx={point.x}
+                cy={point.y}
+                r="3"
+                fill="black"
+                fillOpacity="0.7"
+                stroke={hoveredPoint === index && hoveredType === "base" ? "#000" : "none"}
+                strokeWidth="1"
+                onMouseEnter={() => {
+                  setHoveredPoint(index);
+                  setHoveredType("base");
+                }}
+                onMouseLeave={() => {
+                  setHoveredPoint(null);
+                  setHoveredType(null);
+                }}
+              />
             ))}
 
             {/* Draw data points based on toggle state */}
@@ -895,110 +949,6 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                 </text>
               </g>
             ))}
-
-            {/* Restructured tooltip */}
-            {hoveredPoint !== null && actualPoints[hoveredPoint] && (
-              <g>
-                {/* Calculate tooltip position */}
-                {(() => {
-                  const point = actualPoints[hoveredPoint];
-                  const tooltipWidth = 280;
-                  const tooltipHeight = 170;
-                  
-                  // Check if tooltip would go out of bounds
-                  const wouldExceedRight = point.x + tooltipWidth + 10 > svgWidth;
-                  const wouldExceedTop = point.y - tooltipHeight - 10 < 0;
-                  
-                  // Calculate final position
-                  const tooltipX = wouldExceedRight ? point.x - tooltipWidth - 10 : point.x + 10;
-                  const tooltipY = wouldExceedTop ? point.y + 10 : point.y - tooltipHeight - 10;
-                  
-                  return (
-                    <>
-                      <rect
-                        x={tooltipX}
-                        y={tooltipY}
-                        width={tooltipWidth}
-                        height={tooltipHeight}
-                        fill="rgba(0, 0, 0, 0.8)"
-                        rx="5"
-                      />
-                      
-                      {/* Time and Position Section */}
-                      <g transform={`translate(${tooltipX + 5}, ${tooltipY + 10})`}>
-                        <text fill="white" fontSize="12" fontWeight="bold">Time and Position</text>
-                        <text y="15" fill="#8db0e8" fontSize="11">
-                          {new Date(point.original.timestamp_ros * 1000).toISOString()}
-                        </text>
-                        <text y="30" fill="#8db0e8" fontSize="11">
-                          Lat: {point.original.latitude.toFixed(6)}°
-                        </text>
-                        <text y="45" fill="#8db0e8" fontSize="11">
-                          Lon: {point.original.longitude.toFixed(6)}°
-                        </text>
-                      </g>
-
-                      {/* Vehicle State Section */}
-                      <g transform={`translate(${tooltipX + 145}, ${tooltipY + 10})`}>
-                        <text fill="white" fontSize="12" fontWeight="bold">Vehicle State</text>
-                        <text y="15" fill="#8db0e8" fontSize="11">
-                          Mode: {point.original.navMode}
-                        </text>
-                        <text y="30" fill="#8db0e8" fontSize="11">
-                          Battery: {point.original.battery_volts?.toFixed(2)}V
-                        </text>
-                        <text y="45" fill="#8db0e8" fontSize="11">
-                          Error: {point.original.errorState}
-                        </text>
-                      </g>
-
-                      {/* Motion Data Section */}
-                      <g transform={`translate(${tooltipX + 5}, ${tooltipY + 70})`}>
-                        <text fill="white" fontSize="12" fontWeight="bold">Motion Data</text>
-                        <text y="15" fill="#8db0e8" fontSize="11">
-                          Depth: {point.depth.toFixed(2)}m
-                        </text>
-                        <text y="30" fill="#8db0e8" fontSize="11">
-                          Velocity: {Math.sqrt(
-                            Math.pow(point.original.velX, 2) +
-                            Math.pow(point.original.velY, 2) +
-                            Math.pow(point.original.velZ, 2)
-                          ).toFixed(2)} m/s
-                        </text>
-                        <text y="45" fill="#8db0e8" fontSize="11">
-                          Altimeter: {point.original.acousticAltimeter?.toFixed(2)}m
-                        </text>
-                      </g>
-
-                      {/* Attitude Section */}
-                      <g transform={`translate(${tooltipX + 145}, ${tooltipY + 70})`}>
-                        <text fill="white" fontSize="12" fontWeight="bold">Attitude</text>
-                        <text y="15" fill="#8db0e8" fontSize="11">
-                          Roll: {point.original.roll?.toFixed(2)}°
-                        </text>
-                        <text y="30" fill="#8db0e8" fontSize="11">
-                          Pitch: {point.original.pitch?.toFixed(2)}°
-                        </text>
-                        <text y="45" fill="#8db0e8" fontSize="11">
-                          Yaw: {point.original.yaw?.toFixed(2)}°
-                        </text>
-                      </g>
-
-                      {/* Detection Data Section */}
-                      <g transform={`translate(${tooltipX + 5}, ${tooltipY + 130})`}>
-                        <text fill="white" fontSize="12" fontWeight="bold">Detection Data</text>
-                        <text y="15" fill="#8db0e8" fontSize="11">
-                          Found Objects: {point.original.cotsNumFound || 0}
-                        </text>
-                        <text y="30" fill="#8db0e8" fontSize="11">
-                          Maybe Objects: {point.original.cotsNumMaybe || 0}
-                        </text>
-                      </g>
-                    </>
-                  );
-                })()}
-              </g>
-            )}
           </svg>
 
           {/* Combined Legends Section */}
