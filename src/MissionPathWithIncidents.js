@@ -71,22 +71,10 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const formatTimeOnly = (timestamp) => {
     if (!timestamp) return "00:00:00";
     try {
-      // Parse the timestamp string (YYYYMMDDHHmmSS.ffffff)
-      const hour = parseInt(timestamp.substring(8, 10));
-      const minute = parseInt(timestamp.substring(10, 12));
-      const second = parseInt(timestamp.substring(12, 14));
-      
-      if (isNaN(hour) || isNaN(minute) || isNaN(second)) {
-        return "00:00:00";
-      }
-      
-      // Create UTC date and convert to AST
-      const utcDate = new Date(Date.UTC(2025, 0, 1, hour, minute, second));
-      const astDate = new Date(utcDate.getTime() - (4 * 60 * 60 * 1000));
-      
-      // Format just the time
-      const pad = (num) => String(num).padStart(2, '0');
-      return `${pad(astDate.getUTCHours())}:${pad(astDate.getUTCMinutes())}:${pad(astDate.getUTCSeconds())}`;
+      const hour = timestamp.substring(8, 10);
+      const minute = timestamp.substring(10, 12);
+      const second = timestamp.substring(12, 14);
+      return `${hour}:${minute}:${second}`;
     } catch (error) {
       console.error('Error formatting time:', error);
       return "00:00:00";
@@ -97,17 +85,13 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
   const formatDateOnly = (timestamp) => {
     if (!timestamp) return "1 January 2025";
     try {
-      const year = parseInt(timestamp.substring(0, 4));
+      const year = timestamp.substring(0, 4);
       const month = parseInt(timestamp.substring(4, 6)) - 1;
-      const day = parseInt(timestamp.substring(6, 8));
-      
-      if (isNaN(year) || isNaN(month) || isNaN(day)) {
-        return "1 January 2025";
-      }
+      const day = timestamp.substring(6, 8);
       
       const months = ['January', 'February', 'March', 'April', 'May', 'June', 
                      'July', 'August', 'September', 'October', 'November', 'December'];
-      return `${day} ${months[month]} ${year}`;
+      return `${parseInt(day)} ${months[month]} ${year}`;
     } catch (error) {
       console.error('Error formatting date:', error);
       return "1 January 2025";
@@ -598,11 +582,12 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
     <div style={styles.container}>
       <h2 style={styles.title}>
         {missionName}
-        {timeRange.start && timeRange.end && (
-          <div style={{ fontSize: "1rem", color: "#64748b", marginTop: "4px" }}>
-            {formatDateOnly(timeRange.start)} ({formatTimeOnly(timeRange.start)} - {formatTimeOnly(timeRange.end)} AST)
-          </div>
-        )}
+        <div style={{ fontSize: "1rem", color: "#64748b", marginTop: "4px" }}>
+          {formatDateOnly(timeRange.start)}
+        </div>
+        <div style={{ fontSize: "1rem", color: "#64748b", marginTop: "4px" }}>
+          {formatTimeOnly(timeRange.start)} - {formatTimeOnly(timeRange.end)}
+        </div>
       </h2>
 
       {error && (
@@ -772,7 +757,7 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
               </React.Fragment>
             ))}
 
-            {/* Base black points with tooltip */}
+            {/* Base black points */}
             {showBasePoints && actualPoints.map((point, index) => (
               <React.Fragment key={`base-point-${index}`}>
                 <circle
@@ -792,61 +777,6 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                     setHoveredType(null);
                   }}
                 />
-                {hoveredPoint === index && hoveredType === "base" && (
-                  <g>
-                    <rect
-                      x={point.x + 10}
-                      y={point.y - 120}
-                      width="280"
-                      height="240"
-                      fill="#1e293b"
-                      fillOpacity="0.95"
-                      rx="4"
-                    />
-                    <text x={point.x + 20} y={point.y - 100} fill="white" fontSize="12" fontWeight="bold">
-                      Time and Position
-                    </text>
-                    <text x={point.x + 20} y={point.y - 85} fill="#8db0e8" fontSize="11">
-                      {formatDateOnly(point.original.timestamp_sys)} {formatTimeOnly(point.original.timestamp_sys)} AST
-                    </text>
-                    <text x={point.x + 20} y={point.y - 70} fill="#8db0e8" fontSize="11">
-                      Lat: {point.original.latitude.toFixed(6)}° | Long: {point.original.longitude.toFixed(6)}°
-                    </text>
-
-                    <text x={point.x + 20} y={point.y - 50} fill="white" fontSize="12" fontWeight="bold">
-                      Vehicle State
-                    </text>
-                    <text x={point.x + 20} y={point.y - 35} fill="#8db0e8" fontSize="11">
-                      Mode: {point.original.navMode} | Battery: {point.original.battery_volts.toFixed(2)}V
-                    </text>
-                    <text x={point.x + 20} y={point.y - 20} fill="#8db0e8" fontSize="11">
-                      Error State: {point.original.errorState}
-                    </text>
-
-                    <text x={point.x + 20} y={point.y} fill="white" fontSize="12" fontWeight="bold">
-                      Motion Data
-                    </text>
-                    <text x={point.x + 20} y={point.y + 15} fill="#8db0e8" fontSize="11">
-                      Depth: {point.original.depth.toFixed(2)}m | Alt: {point.original.acousticAltimeter.toFixed(2)}m
-                    </text>
-                    <text x={point.x + 20} y={point.y + 30} fill="#8db0e8" fontSize="11">
-                      Velocity: ({point.original.velX.toFixed(2)}, {point.original.velY.toFixed(2)}, {point.original.velZ.toFixed(2)}) m/s
-                    </text>
-
-                    <text x={point.x + 20} y={point.y + 50} fill="white" fontSize="12" fontWeight="bold">
-                      Attitude
-                    </text>
-                    <text x={point.x + 20} y={point.y + 65} fill="#8db0e8" fontSize="11">
-                      Roll: {point.original.roll.toFixed(2)}° | Pitch: {point.original.pitch.toFixed(2)}°
-                    </text>
-                    <text x={point.x + 20} y={point.y + 80} fill="#8db0e8" fontSize="11">
-                      Yaw: {point.original.yaw.toFixed(2)}° | Floor Dist: {point.original.distance_to_ocean_floor.toFixed(2)}m
-                    </text>
-                    <text x={point.x + 20} y={point.y + 95} fill="#8db0e8" fontSize="11">
-                      Forward Stereo: {point.original.forwardStereo.toFixed(2)}m
-                    </text>
-                  </g>
-                )}
               </React.Fragment>
             ))}
 
@@ -954,6 +884,50 @@ const MissionPathWithIncidents = ({ missionJsonPath, missionCsvPath }) => {
                 }}
               />
             ))}
+
+            {/* Shared tooltip for all point types */}
+            {hoveredPoint !== null && ["base", "depth", "velocity", "mode", "battery", "altimeter"].includes(hoveredType) && (
+              <g>
+                <rect
+                  x={actualPoints[hoveredPoint].x + (actualPoints[hoveredPoint].x > svgWidth/2 ? -290 : 10)}
+                  y={actualPoints[hoveredPoint].y - 140}
+                  width="280"
+                  height="280"
+                  fill="#1e293b"
+                  fillOpacity="0.95"
+                  rx="4"
+                />
+                <text x={actualPoints[hoveredPoint].x + (actualPoints[hoveredPoint].x > svgWidth/2 ? -280 : 20)} y={actualPoints[hoveredPoint].y - 120} fill="white" fontSize="12" fontWeight="bold">
+                  {formatDateOnly(actualPoints[hoveredPoint].original.timestamp_sys)}
+                </text>
+                <text x={actualPoints[hoveredPoint].x + (actualPoints[hoveredPoint].x > svgWidth/2 ? -280 : 20)} y={actualPoints[hoveredPoint].y - 105} fill="#8db0e8" fontSize="11">
+                  Time: {formatTimeOnly(actualPoints[hoveredPoint].original.timestamp_sys)}
+                </text>
+
+                {/* Left Column */}
+                <g transform={`translate(${actualPoints[hoveredPoint].x + (actualPoints[hoveredPoint].x > svgWidth/2 ? -280 : 20)}, ${actualPoints[hoveredPoint].y - 85})`}>
+                  <text y="0" fill="#8db0e8" fontSize="11">Latitude: {actualPoints[hoveredPoint].original.latitude.toFixed(6)}°</text>
+                  <text y="15" fill="#8db0e8" fontSize="11">Longitude: {actualPoints[hoveredPoint].original.longitude.toFixed(6)}°</text>
+                  <text y="30" fill="#8db0e8" fontSize="11">Depth: {actualPoints[hoveredPoint].original.depth.toFixed(2)}m</text>
+                  <text y="45" fill="#8db0e8" fontSize="11">Altimeter: {actualPoints[hoveredPoint].original.acousticAltimeter.toFixed(2)}m</text>
+                  <text y="60" fill="#8db0e8" fontSize="11">Battery: {actualPoints[hoveredPoint].original.battery_volts.toFixed(2)}V</text>
+                  <text y="75" fill="#8db0e8" fontSize="11">Nav Mode: {actualPoints[hoveredPoint].original.navMode}</text>
+                  <text y="90" fill="#8db0e8" fontSize="11">Error State: {actualPoints[hoveredPoint].original.errorState}</text>
+                  <text y="105" fill="#8db0e8" fontSize="11">Roll: {actualPoints[hoveredPoint].original.roll.toFixed(2)}°</text>
+                </g>
+
+                {/* Right Column */}
+                <g transform={`translate(${actualPoints[hoveredPoint].x + (actualPoints[hoveredPoint].x > svgWidth/2 ? -140 : 160)}, ${actualPoints[hoveredPoint].y - 85})`}>
+                  <text y="0" fill="#8db0e8" fontSize="11">Pitch: {actualPoints[hoveredPoint].original.pitch.toFixed(2)}°</text>
+                  <text y="15" fill="#8db0e8" fontSize="11">Yaw: {actualPoints[hoveredPoint].original.yaw.toFixed(2)}°</text>
+                  <text y="30" fill="#8db0e8" fontSize="11">Vel X: {actualPoints[hoveredPoint].original.velX.toFixed(2)}m/s</text>
+                  <text y="45" fill="#8db0e8" fontSize="11">Vel Y: {actualPoints[hoveredPoint].original.velY.toFixed(2)}m/s</text>
+                  <text y="60" fill="#8db0e8" fontSize="11">Vel Z: {actualPoints[hoveredPoint].original.velZ.toFixed(2)}m/s</text>
+                  <text y="75" fill="#8db0e8" fontSize="11">Floor Dist: {actualPoints[hoveredPoint].original.distance_to_ocean_floor.toFixed(2)}m</text>
+                  <text y="90" fill="#8db0e8" fontSize="11">Fwd Stereo: {actualPoints[hoveredPoint].original.forwardStereo.toFixed(2)}m</text>
+                </g>
+              </g>
+            )}
 
             {/* Draw attitude indicators */}
             {showAttitudeIndicators && actualPoints.map((point, index) => {
