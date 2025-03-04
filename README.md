@@ -1,4 +1,4 @@
-# RangerBot Telemetry Visualization
+# Visualize AUV Mission (and other things)
 
 A web-based visualization tool for RangerBot mission telemetry data, supporting multiple data sources including mission paths, waypoints, and USBL tracking data.
 
@@ -7,15 +7,18 @@ Can be branched and modified at codesandbox (https://codesandbox.io/p/github/lau
 ## Data Format Requirements
 
 ### 1. Mission Path Data (CSV)
+
 Place your mission path CSV file in the `public/data/` directory. The file should contain the following:
 
 Required columns:
+
 - `timestamp_sys`: System timestamp
 - `latitude`: Decimal degrees
 - `longitude`: Decimal degrees
 - `depth`: Meters
 
 Optional columns:
+
 - `roll`: Degrees
 - `pitch`: Degrees
 - `yaw`: Degrees
@@ -27,7 +30,9 @@ Optional columns:
 - `navMode`: Navigation mode (0: Normal, 1: Warning, 2: Error)
 
 ### 2. Mission Waypoints (JSON)
+
 Place your mission waypoints JSON file in the `public/data/` directory. The file should follow this structure:
+
 ```json
 {
   "mission_summary": {
@@ -43,7 +48,9 @@ Place your mission waypoints JSON file in the `public/data/` directory. The file
 ```
 
 ### 3. USBL Tracking Data (CSV)
+
 Place your USBL tracking data CSV file in the `public/data/` directory. The file should contain columns in this order:
+
 1. timestamp
 2. id
 3. latitude (decimal degrees)
@@ -58,13 +65,14 @@ Update the `MISSION_CONFIG` object in `src/App.js` to point to your data files:
 const MISSION_CONFIG = {
   jsonPath: "/data/your_waypoints.json",
   csvPath: "/data/your_mission_path.csv",
-  usblPath: "/data/your_usbl_data.csv"
+  usblPath: "/data/your_usbl_data.csv",
 };
 ```
 
 ## Visualization Features
 
 The visualization includes:
+
 - Mission path with depth coloring
 - Planned waypoints
 - USBL tracking data
