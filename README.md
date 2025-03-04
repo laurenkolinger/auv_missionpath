@@ -2,7 +2,7 @@
 
 A web-based visualization tool for RangerBot mission telemetry data, supporting multiple data sources including mission paths, waypoints, and USBL tracking data.
 
-close and update with new data at (codesandbox)[https://codesandbox.io/p/github/laurenkolinger/rangerbot_telemetry_3mar25/main?embed=1].
+Clone and update with new data at [codesandbox](https://codesandbox.io/p/github/laurenkolinger/rangerbot_telemetry_3mar25/main?embed=1).
 
 ## Data Format Requirements
 
