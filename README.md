@@ -57,17 +57,38 @@ Place your USBL tracking data CSV file in the `public/data/` directory. The file
 4. longitude (decimal degrees)
 5. depth (meters)
 
-## Configuration
+## Adding Missions - AUTOMATIC!
 
-Update the `MISSION_CONFIG` object in `src/App.js` to point to your data files:
+Simply drop a mission folder into `public/data/` and it will automatically appear as a tab!
 
-```javascript
-const MISSION_CONFIG = {
-  jsonPath: "/data/your_waypoints.json",
-  csvPath: "/data/your_mission_path.csv",
-  usblPath: "/data/your_usbl_data.csv",
-};
+### Mission Folder Structure
+
 ```
+public/data/
+└── YYYYMMDDHHMMSS-MissionName/    (or just MissionName/)
+    ├── MissionName.json            (required - waypoints and mission info)
+    ├── mission_travel_path.csv     (required - telemetry data)
+    └── mission_summary.json        (optional - for timestamps)
+```
+
+### Example
+
+```
+public/data/
+└── 20260109153659-Logram09/
+    ├── Logram09.json
+    ├── mission_travel_path.csv
+    └── mission_summary.json
+```
+
+That's it! Just refresh your browser and the new mission appears as a tab.
+
+**The system automatically:**
+- Discovers all missions in `public/data/`
+- Extracts mission names from folder names
+- Finds the correct JSON file (matches the mission name)
+- Groups missions by date
+- Sorts them newest first
 
 ## Visualization Features
 
@@ -90,14 +111,19 @@ The visualization includes:
    # or
    pnpm install
    ```
-3. Place your data files in the `public/data/` directory
-4. Update the `MISSION_CONFIG` in `src/App.js`
-5. Start the development server:
+3. Place your mission folders in `public/data/` (see structure above)
+4. Start the development server:
    ```bash
    npm start
    # or
    pnpm start
    ```
+   The app automatically discovers all missions on startup!
+
+5. Add more missions anytime:
+   - Drop a new folder in `public/data/`
+   - Restart the dev server (or just refresh if already running)
+   - New mission appears as a tab!
 
 ## Data Processing Notes
 

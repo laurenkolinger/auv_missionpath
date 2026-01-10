@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import _ from "lodash";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 
 const MissionPathWithIncidents = ({
   missionJsonPath,
@@ -78,11 +78,21 @@ const MissionPathWithIncidents = ({
 
   // Function to format time only (HH:MM:SS)
   const formatTimeOnly = (timestamp) => {
-    if (!timestamp || typeof timestamp !== "string") return "00:00:00";
+    if (!timestamp) {
+      console.warn("formatTimeOnly: No timestamp provided");
+      return "00:00:00";
+    }
+
+    // Convert to string if it's a number
+    const timestampStr = String(timestamp);
+
     try {
       // Parse the timestamp (YYYYMMDDHHmmss.ffffff format)
-      const timeStr = timestamp.split(".")[0]; // Remove microseconds
-      if (timeStr.length < 14) return "00:00:00";
+      const timeStr = timestampStr.split(".")[0]; // Remove microseconds
+      if (timeStr.length < 14) {
+        console.warn("formatTimeOnly: Timestamp too short:", timestampStr);
+        return "00:00:00";
+      }
 
       const hours = timeStr.substring(8, 10);
       const minutes = timeStr.substring(10, 12);
@@ -90,18 +100,28 @@ const MissionPathWithIncidents = ({
 
       return `${hours}:${minutes}:${seconds}`;
     } catch (error) {
-      console.error("Error formatting time:", error, "timestamp:", timestamp);
+      console.error("Error formatting time:", error, "timestamp:", timestampStr);
       return "00:00:00";
     }
   };
 
   // Function to format date only (d Month YYYY)
   const formatDateOnly = (timestamp) => {
-    if (!timestamp || typeof timestamp !== "string") return "3 March 2025";
+    if (!timestamp) {
+      console.warn("formatDateOnly: No timestamp provided");
+      return "Unknown Date";
+    }
+
+    // Convert to string if it's a number
+    const timestampStr = String(timestamp);
+
     try {
       // Parse the timestamp (YYYYMMDDHHmmss.ffffff format)
-      const timeStr = timestamp.split(".")[0]; // Remove microseconds
-      if (timeStr.length < 14) return "1 January 2025";
+      const timeStr = timestampStr.split(".")[0]; // Remove microseconds
+      if (timeStr.length < 14) {
+        console.warn("formatDateOnly: Timestamp too short:", timestampStr);
+        return "Unknown Date";
+      }
 
       const year = timeStr.substring(0, 4);
       const month = parseInt(timeStr.substring(4, 6)) - 1; // JS months are 0-based
@@ -110,8 +130,8 @@ const MissionPathWithIncidents = ({
       const date = new Date(year, month, day);
       return format(date, "d MMMM yyyy");
     } catch (error) {
-      console.error("Error formatting date:", error, "timestamp:", timestamp);
-      return "1 January 2025";
+      console.error("Error formatting date:", error, "timestamp:", timestampStr);
+      return "Unknown Date";
     }
   };
 
@@ -165,6 +185,10 @@ const MissionPathWithIncidents = ({
           header: true,
           dynamicTyping: true,
           skipEmptyLines: true,
+          transformHeader: (header) => {
+            // Clean up headers that have extra text in parentheses
+            return header.split(' ')[0].trim();
+          },
         });
 
         // Get time range from timestamp_sys
@@ -173,20 +197,33 @@ const MissionPathWithIncidents = ({
           .filter(Boolean)
           .sort();
 
+        console.log("First few timestamps:", timeStamps.slice(0, 3));
+        console.log("Timestamp type:", typeof timeStamps[0]);
+
         if (timeStamps.length > 0) {
+          // Convert to string if it's a number (Papa.parse might parse it as number)
+          const startTime = String(timeStamps[0]);
+          const endTime = String(timeStamps[timeStamps.length - 1]);
+          console.log("Setting time range:", { start: startTime, end: endTime });
           setTimeRange({
-            start: timeStamps[0],
-            end: timeStamps[timeStamps.length - 1],
+            start: startTime,
+            end: endTime,
           });
         }
 
         // Filter out any rows with null coordinates or depth
-        const validData = parsedResults.data.filter(
-          (row) =>
-            row.latitude !== null &&
-            row.longitude !== null &&
-            row.depth !== null
-        );
+        const validData = parsedResults.data
+          .filter(
+            (row) =>
+              row.latitude !== null &&
+              row.longitude !== null &&
+              row.depth !== null
+          )
+          .map((row) => ({
+            ...row,
+            // Ensure timestamp_sys is a string for formatting functions
+            timestamp_sys: row.timestamp_sys ? String(row.timestamp_sys) : null,
+          }));
 
         // Calculate ranges for continuous variables
         const velocities = validData.map((row) =>

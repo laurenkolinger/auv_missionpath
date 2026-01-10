@@ -1,0 +1,134 @@
+{
+    "json_mission_converter_version": "0.0.1",
+    "qutrsms_version": "0.2.x",
+    "mission_summary": {
+        "mission_name": "DocNsub"
+    },
+    "formation_definition": {
+        "Note:": "Formations are not currently supported in JSON"
+    },
+    "waypoints": [
+        {
+            "waypoint_number": 1,
+            "longitude": -64.9771232,
+            "latitude": 18.3406527,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Surface",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true
+            }
+        },
+        {
+            "waypoint_number": 2,
+            "longitude": -64.9771325,
+            "latitude": 18.3408089,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 3.0,
+                "Altitude": 1.2,
+                "AI Target": 0.0,
+                "Record Down": false,
+                "Record Forward": false,
+                "Extended Logging": false,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 3,
+            "longitude": -64.9769643,
+            "latitude": 18.3408372,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 3.0,
+                "Altitude": 1.2,
+                "AI Target": 0.0,
+                "Record Down": false,
+                "Record Forward": false,
+                "Extended Logging": false,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 4,
+            "longitude": -64.9768536,
+            "latitude": 18.340719,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 3.0,
+                "Altitude": 1.2,
+                "AI Target": 0.0,
+                "Record Down": false,
+                "Record Forward": false,
+                "Extended Logging": false,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 5,
+            "longitude": -64.9769151,
+            "latitude": 18.3406657,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 3.0,
+                "Altitude": 1.2,
+                "AI Target": 0.0,
+                "Record Down": false,
+                "Record Forward": false,
+                "Extended Logging": false,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 6,
+            "longitude": -64.9770706,
+            "latitude": 18.3406231,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Surface",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true
+            }
+        }
+    ],
+    "safe_return_points": [
+        {
+            "safe_return_point_number": 0,
+            "parent_safe_return_point_number": 0,
+            "longitude": -64.9771232,
+            "latitude": 18.3406527
+        },
+        {
+            "safe_return_point_number": 1,
+            "parent_safe_return_point_number": 0,
+            "longitude": -64.9770706,
+            "latitude": 18.3406231
+        }
+    ]
+}

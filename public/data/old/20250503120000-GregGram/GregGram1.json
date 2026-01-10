@@ -1,0 +1,502 @@
+{
+    "json_mission_converter_version": "0.0.1",
+    "qutrsms_version": "0.2.x",
+    "mission_summary": {
+        "mission_name": "GregGram"
+    },
+    "formation_definition": {
+        "Note:": "Formations are not currently supported in JSON"
+    },
+    "waypoints": [
+        {
+            "waypoint_number": 1,
+            "longitude": -64.95869,
+            "latitude": 18.18908,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Surface",
+                "Light Power %": 100.0
+            }
+        },
+        {
+            "waypoint_number": 2,
+            "longitude": -64.9586912,
+            "latitude": 18.1891688,
+            "speed": 0.4000000059604645,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": false,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 3,
+            "longitude": -64.9587816,
+            "latitude": 18.1891242,
+            "speed": 0.4000000059604645,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": true,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 4,
+            "longitude": -64.9587789,
+            "latitude": 18.1890174,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": true,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 5,
+            "longitude": -64.9587265,
+            "latitude": 18.1891253,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": true,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 6,
+            "longitude": -64.958684,
+            "latitude": 18.189019299999999,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": true,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 7,
+            "longitude": -64.9586322,
+            "latitude": 18.189122,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": true,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 8,
+            "longitude": -64.9585929,
+            "latitude": 18.1890192,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": true,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 9,
+            "longitude": -64.9585333,
+            "latitude": 18.189126,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 10,
+            "longitude": -64.958489,
+            "latitude": 18.188517,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 20.0
+            }
+        },
+        {
+            "waypoint_number": 11,
+            "longitude": -64.958556,
+            "latitude": 18.1886073,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 20.0
+            }
+        },
+        {
+            "waypoint_number": 12,
+            "longitude": -64.9586544,
+            "latitude": 18.1884893,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 20.0
+            }
+        },
+        {
+            "waypoint_number": 13,
+            "longitude": -64.9587399,
+            "latitude": 18.1886092,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 20.0
+            }
+        },
+        {
+            "waypoint_number": 14,
+            "longitude": -64.9588377,
+            "latitude": 18.1885005,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 20.0
+            }
+        },
+        {
+            "waypoint_number": 15,
+            "longitude": -64.9589301,
+            "latitude": 18.1886171,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 20.0
+            }
+        },
+        {
+            "waypoint_number": 16,
+            "longitude": -64.9590243,
+            "latitude": 18.1885062,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 20.0
+            }
+        },
+        {
+            "waypoint_number": 17,
+            "longitude": -64.9591203,
+            "latitude": 18.1886265,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 20.0
+            }
+        },
+        {
+            "waypoint_number": 18,
+            "longitude": -64.9592382,
+            "latitude": 18.1885128,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 20.0
+            }
+        },
+        {
+            "waypoint_number": 19,
+            "longitude": -64.9593092,
+            "latitude": 18.188632,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 20,
+            "longitude": -64.9594242,
+            "latitude": 18.1885169,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 21,
+            "longitude": -64.9595188,
+            "latitude": 18.1886452,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 22,
+            "longitude": -64.9596228,
+            "latitude": 18.1885322,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 23,
+            "longitude": -64.9597452,
+            "latitude": 18.1886625,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 24,
+            "longitude": -64.9598435,
+            "latitude": 18.1885322,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 25,
+            "longitude": -64.9599644,
+            "latitude": 18.188663,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 26,
+            "longitude": -64.9601148,
+            "latitude": 18.1885358,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 27,
+            "longitude": -64.9599778,
+            "latitude": 18.1883956,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": true,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 28,
+            "longitude": -64.9599831,
+            "latitude": 18.1880988,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Desired Depth": 100.0,
+                "Altitude": 2.0,
+                "Search for COTS": false,
+                "Search for Fish": false,
+                "Search for Coral": false,
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 29,
+            "longitude": -64.9599067,
+            "latitude": 18.1880241,
+            "speed": 0.6100000143051148,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Surface",
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 30,
+            "longitude": -64.9598272,
+            "latitude": 18.1881044,
+            "speed": 0.7200000286102295,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Surface",
+                "Light Power %": 0.0
+            }
+        },
+        {
+            "waypoint_number": 31,
+            "longitude": -64.9599039,
+            "latitude": 18.1881656,
+            "speed": 1.0,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Surface",
+                "Light Power %": 0.0
+            }
+        }
+    ],
+    "safe_return_points": [
+        {
+            "safe_return_point_number": 0,
+            "parent_safe_return_point_number": 0,
+            "longitude": -64.95869,
+            "latitude": 18.18908
+        },
+        {
+            "safe_return_point_number": 1,
+            "parent_safe_return_point_number": 0,
+            "longitude": -64.9599039,
+            "latitude": 18.1881656
+        }
+    ]
+}
