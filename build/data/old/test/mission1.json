@@ -1,0 +1,42 @@
+{
+  "mission_summary": {
+    "mission_name": "Mission 1"
+  },
+  "waypoints": [
+    {
+      "waypoint_number": 1,
+      "latitude": 18.350515,
+      "longitude": -64.69909,
+      "speed": 1.0,
+      "radius": 5.0,
+      "additional_data": {
+        "transect_type": "Surface",
+        "Light Power %": 100.0
+      }
+    },
+    {
+      "waypoint_number": 2,
+      "latitude": 18.350530,
+      "longitude": -64.699105,
+      "speed": 1.0,
+      "radius": 5.0,
+      "additional_data": {
+        "transect_type": "Submarine",
+        "Desired Depth": 20.0,
+        "Altitude": 1.0,
+        "Light Power %": 0.0
+      }
+    },
+    {
+      "waypoint_number": 3,
+      "latitude": 18.350550,
+      "longitude": -64.699117,
+      "speed": 1.0,
+      "radius": 5.0,
+      "additional_data": {
+        "transect_type": "Surface",
+        "Light Power %": 100.0
+      }
+    }
+  ]
+} 

@@ -1,0 +1,1749 @@
+{
+    "json_mission_converter_version": "0.0.1",
+    "qutrsms_version": "0.2.x",
+    "mission_summary": {
+        "mission_name": "logram11"
+    },
+    "formation_definition": {
+        "Note:": "Formations are not currently supported in JSON"
+    },
+    "waypoints": [
+        {
+            "waypoint_number": 1,
+            "longitude": -64.9587159,
+            "latitude": 18.1891016,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Surface",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true
+            }
+        },
+        {
+            "waypoint_number": 2,
+            "longitude": -64.958786,
+            "latitude": 18.189237,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 3,
+            "longitude": -64.958791,
+            "latitude": 18.1890979,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 4,
+            "longitude": -64.958791,
+            "latitude": 18.1890874,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 5,
+            "longitude": -64.9587674,
+            "latitude": 18.1890856,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 6,
+            "longitude": -64.9587674,
+            "latitude": 18.1892451,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 7,
+            "longitude": -64.9587437,
+            "latitude": 18.1892423,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 8,
+            "longitude": -64.9587437,
+            "latitude": 18.1890838,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 9,
+            "longitude": -64.95872,
+            "latitude": 18.1890819,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 10,
+            "longitude": -64.95872,
+            "latitude": 18.1892395,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 11,
+            "longitude": -64.9586964,
+            "latitude": 18.1892367,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 12,
+            "longitude": -64.9586964,
+            "latitude": 18.1890801,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 13,
+            "longitude": -64.9586727,
+            "latitude": 18.1890783,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 14,
+            "longitude": -64.9586727,
+            "latitude": 18.1892339,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 15,
+            "longitude": -64.9586491,
+            "latitude": 18.189231,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 16,
+            "longitude": -64.9586491,
+            "latitude": 18.1890764,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 17,
+            "longitude": -64.9586254,
+            "latitude": 18.1890746,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 18,
+            "longitude": -64.9586254,
+            "latitude": 18.1892282,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 19,
+            "longitude": -64.9586017,
+            "latitude": 18.1892254,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 20,
+            "longitude": -64.9586017,
+            "latitude": 18.1890728,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 21,
+            "longitude": -64.9585781,
+            "latitude": 18.1890709,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 22,
+            "longitude": -64.9585781,
+            "latitude": 18.1892226,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 23,
+            "longitude": -64.9585544,
+            "latitude": 18.1892198,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 24,
+            "longitude": -64.9585544,
+            "latitude": 18.1890691,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 25,
+            "longitude": -64.958797,
+            "latitude": 18.1891105,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 26,
+            "longitude": -64.9587878,
+            "latitude": 18.1891611,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 27,
+            "longitude": -64.9585511,
+            "latitude": 18.1891311,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 28,
+            "longitude": -64.9585598,
+            "latitude": 18.1891864,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 29,
+            "longitude": -64.9587868,
+            "latitude": 18.1892236,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 30,
+            "longitude": -64.9585583,
+            "latitude": 18.1890743,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 31,
+            "longitude": -64.9585272,
+            "latitude": 18.1888725,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 32,
+            "longitude": -64.9585396,
+            "latitude": 18.1888648,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 33,
+            "longitude": -64.9585775,
+            "latitude": 18.1890732,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 34,
+            "longitude": -64.9585753,
+            "latitude": 18.188865,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 35,
+            "longitude": -64.9585194,
+            "latitude": 18.1887428,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 36,
+            "longitude": -64.9585253,
+            "latitude": 18.1887174,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 37,
+            "longitude": -64.958534,
+            "latitude": 18.1888755,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 38,
+            "longitude": -64.9585622,
+            "latitude": 18.1888719,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 39,
+            "longitude": -64.9585535,
+            "latitude": 18.1887135,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 40,
+            "longitude": -64.9585817,
+            "latitude": 18.1887097,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 41,
+            "longitude": -64.9585905,
+            "latitude": 18.1888683,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 42,
+            "longitude": -64.9586187,
+            "latitude": 18.1888647,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 43,
+            "longitude": -64.95861,
+            "latitude": 18.1887059,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 44,
+            "longitude": -64.9586382,
+            "latitude": 18.188702,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 45,
+            "longitude": -64.958647,
+            "latitude": 18.1888611,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 46,
+            "longitude": -64.9586752,
+            "latitude": 18.1888575,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 47,
+            "longitude": -64.9586664,
+            "latitude": 18.1886982,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 48,
+            "longitude": -64.9586946,
+            "latitude": 18.1886943,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 49,
+            "longitude": -64.9587034,
+            "latitude": 18.1888539,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 50,
+            "longitude": -64.9587317,
+            "latitude": 18.1888503,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 51,
+            "longitude": -64.9587229,
+            "latitude": 18.1886905,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 52,
+            "longitude": -64.9587511,
+            "latitude": 18.1886867,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 53,
+            "longitude": -64.9587599,
+            "latitude": 18.1888467,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 54,
+            "longitude": -64.9587881,
+            "latitude": 18.1888431,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 55,
+            "longitude": -64.9587793,
+            "latitude": 18.1886828,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 56,
+            "longitude": -64.9588075,
+            "latitude": 18.188679,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 57,
+            "longitude": -64.9588164,
+            "latitude": 18.1888396,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 58,
+            "longitude": -64.9588446,
+            "latitude": 18.188836,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 59,
+            "longitude": -64.9588358,
+            "latitude": 18.1886751,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 60,
+            "longitude": -64.958864,
+            "latitude": 18.1886713,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 61,
+            "longitude": -64.9588729,
+            "latitude": 18.1888324,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 62,
+            "longitude": -64.9589011,
+            "latitude": 18.1888288,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 63,
+            "longitude": -64.9588922,
+            "latitude": 18.1886675,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 64,
+            "longitude": -64.9589204,
+            "latitude": 18.1886636,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 65,
+            "longitude": -64.9589293,
+            "latitude": 18.1888252,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 66,
+            "longitude": -64.9589576,
+            "latitude": 18.1888216,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 67,
+            "longitude": -64.9589487,
+            "latitude": 18.1886598,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 68,
+            "longitude": -64.9589769,
+            "latitude": 18.1886559,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 69,
+            "longitude": -64.9589858,
+            "latitude": 18.188818,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 70,
+            "longitude": -64.9590141,
+            "latitude": 18.1888144,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 71,
+            "longitude": -64.9590051,
+            "latitude": 18.1886521,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 72,
+            "longitude": -64.9590333,
+            "latitude": 18.1886482,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 73,
+            "longitude": -64.9590423,
+            "latitude": 18.1888108,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 74,
+            "longitude": -64.9590705,
+            "latitude": 18.1888072,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 75,
+            "longitude": -64.9590616,
+            "latitude": 18.1886444,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 76,
+            "longitude": -64.9590898,
+            "latitude": 18.1886406,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 77,
+            "longitude": -64.9590988,
+            "latitude": 18.1888037,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 78,
+            "longitude": -64.959127,
+            "latitude": 18.1888001,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 79,
+            "longitude": -64.959118,
+            "latitude": 18.1886367,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 80,
+            "longitude": -64.9591462,
+            "latitude": 18.1886329,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 81,
+            "longitude": -64.9591553,
+            "latitude": 18.1887965,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 82,
+            "longitude": -64.9591835,
+            "latitude": 18.1887929,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 83,
+            "longitude": -64.9591745,
+            "latitude": 18.188629,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 84,
+            "longitude": -64.9592027,
+            "latitude": 18.1886252,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 85,
+            "longitude": -64.9592117,
+            "latitude": 18.1887893,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 86,
+            "longitude": -64.95924,
+            "latitude": 18.1887857,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 87,
+            "longitude": -64.9592319,
+            "latitude": 18.1886401,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 88,
+            "longitude": -64.9592448,
+            "latitude": 18.1886961,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 2.5,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 89,
+            "longitude": -64.9585311,
+            "latitude": 18.1888037,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 3.0,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 90,
+            "longitude": -64.9585956,
+            "latitude": 18.1890691,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Submarine",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "Desired Depth": 50.0,
+                "Altitude": 3.0,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true,
+                "Search for Fish": false
+            }
+        },
+        {
+            "waypoint_number": 91,
+            "longitude": -64.9587096,
+            "latitude": 18.1890964,
+            "speed": 0.5,
+            "radius": 5.0,
+            "additional_data": {
+                "transect_type": "Surface",
+                "Waypoint Repeats": 0.0,
+                "Light Power %": 100.0,
+                "AI Target": 0.0,
+                "Record Down": true,
+                "Record Forward": true,
+                "Extended Logging": true
+            }
+        }
+    ],
+    "safe_return_points": [
+        {
+            "safe_return_point_number": 0,
+            "parent_safe_return_point_number": 0,
+            "longitude": -64.9587159,
+            "latitude": 18.1891016
+        },
+        {
+            "safe_return_point_number": 1,
+            "parent_safe_return_point_number": 0,
+            "longitude": -64.9587096,
+            "latitude": 18.1890964
+        }
+    ]
+}
